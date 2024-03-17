@@ -1,0 +1,20 @@
+.header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: fixed;
+  z-index: 1;
+  background-color: white;
+  top: 0px;
+  left: 0px;
+  .logoImg {
+    margin: 16px;
+  }
+  .empty {
+    flex-grow: 1;
+  }
+  .avatar {
+    margin-right: 16px;
+    cursor: pointer;
+  }
+}

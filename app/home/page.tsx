@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <div className={style.container}>
       <Header></Header>
-      <div className={`${style.content} px-5`}>
+      <div className={`${style.content} px-5  mt-[80px]`}>
         <div
           className={`${style.searchBar} grid grid-cols-3 gap-x-1 gap-y-2.5 max-w-[650px]`}
         >

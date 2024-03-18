@@ -10,7 +10,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Play } from "lucide-react";
+import { Play, Star, Clock } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 export default function CourseDetail() {
   return (
@@ -107,7 +111,88 @@ export default function CourseDetail() {
             </AccordionItem>
           </Accordion>
         </TabsContent>
-        <TabsContent value="overview">Change your password here.</TabsContent>
+        <TabsContent value="overview" className="px-8">
+          <div className="flex my-10">
+            <Card className="px-[65px] py-5 mr-11 flex flex-col items-center justify-center">
+              <div className="text-2xl text-zinc-600 mb-3">4 out of 5</div>
+              <div className="flex">
+                {Array.from({ length: 5 }, (_, index) => index).map(
+                  (value, _, arr) => (
+                    <Star
+                      size={20}
+                      fill="rgb(245, 158, 11)"
+                      color="rgb(245, 158, 11)"
+                      key={`star-${value}`}
+                      className={`${value < arr.length - 1 ? "mr-1" : ""}`}
+                    />
+                  )
+                )}
+              </div>
+            </Card>
+            <div className="flex-1">
+              <div className="max-w-[500px]">
+                {Array.from({ length: 5 }, (_, index) => index).map((value) => (
+                  <div
+                    key={`star-rate-${value}`}
+                    className="text-slate-500 flex items-center mt-1.5"
+                  >
+                    <div className="mr-2 w-[55px]">{value}&nbsp;&nbsp;Star</div>
+                    <Progress value={33} className="flex-1 h-[6px]" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div>
+            {Array.from({ length: 3 }, (_, index) => index).map(
+              (value, _, arr) => (
+                <div key={`comment-item-${value}`}>
+                  <div className="flex ">
+                    <div className="flex flex-1 items-center">
+                      <Avatar className="w-[50px] h-[50px]">
+                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarFallback>CN</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 ml-2">
+                        <div className="text-sm mb-1.5">User Name</div>
+                        <div className="flex">
+                          {Array.from({ length: 4 }, (_, index) => index).map(
+                            (value) => (
+                              <Star
+                                size={16}
+                                fill="rgb(245, 158, 11)"
+                                color="rgb(245, 158, 11)"
+                                key={`star-comment-${value}`}
+                                className="mr-1"
+                              />
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <Clock size={16} color="#94a3b8" />
+                      <div className="ml-2 text-xs text-slate-500">
+                        3 months ago
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-gray-500">
+                    This course surpassed expectations! Engaging lectures,
+                    interactive discussions, and practical assignments provided
+                    invaluable insights. Expert instruction and a supportive
+                    environment enhanced learning. Highly recommended!
+                  </div>
+                  {value < arr.length - 1 ? (
+                    <Separator className="mt-5 mb-4" />
+                  ) : (
+                    ""
+                  )}
+                </div>
+              )
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );

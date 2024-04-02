@@ -25,7 +25,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -37,75 +36,70 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DataTableFacetedFilter } from "../components/table-faceted-filter";
+import { roles } from "./data";
 
-const data: Payment[] = [
+const data: User[] = [
   {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
+    id: "1",
+    name: "111",
+    email: "111@gmail.com",
+    school: [
+      {
+        id: "uni1",
+        name: "school A",
+      },
+      {
+        id: "uni2",
+        name: "school B",
+      },
+    ],
+    role: "teacher",
   },
   {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
+    id: "2",
+    name: "222",
+    email: "222@gmail.com",
+    school: [
+      {
+        id: "uni2",
+        name: "school B",
+      },
+      {
+        id: "uni3",
+        name: "school C",
+      },
+    ],
+    role: "teacher",
   },
   {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
-  },
-  {
-    id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@gmail.com",
-  },
-  {
-    id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@hotmail.com",
+    id: "4",
+    name: "333",
+    email: "333@gmail.com",
+    school: [
+      {
+        id: "uni4",
+        name: "school D",
+      },
+    ],
+    role: "student",
   },
 ];
 
-// const data: User[] = [
-//  {
-//   id: "1",
-//   name: "111",
-//   email: "111@gmail.com",
-//   school: [{
-//     id: "u1",
-
-//   }]
-//   role: 'teacher' | 'student'
-//  }
-// ];
-
-export type Payment = {
+export type School = {
   id: string;
-  amount: number;
-  status: "pending" | "processing" | "success" | "failed";
-  email: string;
+  name: string;
 };
 
-// export type School = {
-//   id: string;
-//   name: string;
-//   type: ''
-// }
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  school: School[];
+  role: "teacher" | "student";
+};
 
-// export type User = {
-//   id: string;
-//   name: string;
-//   email: string;
-//   school: University[];
-//   role: 'teacher' | 'student'
-// }
-
-export const columns: ColumnDef<Payment>[] = [
+export const columns: ColumnDef<User>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -129,11 +123,9 @@ export const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
-    ),
+    accessorKey: "id",
+    header: () => <div className="text-right">Id</div>,
+    cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
   },
   {
     accessorKey: "email",
@@ -141,6 +133,7 @@ export const columns: ColumnDef<Payment>[] = [
       return (
         <Button
           variant="ghost"
+          className="float-right"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Email
@@ -148,49 +141,56 @@ export const columns: ColumnDef<Payment>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
+    cell: ({ row }) => (
+      <div className="lowercase text-right">{row.getValue("email")}</div>
+    ),
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-
-      return <div className="text-right font-medium">{formatted}</div>;
+    accessorKey: "name",
+    header: () => <div className="text-right">Name</div>,
+    cell: ({ row }) => (
+      <div className="text-right font-medium">{row.getValue("name")}</div>
+    ),
+  },
+  {
+    accessorKey: "role",
+    header: () => <div className="text-right">Role</div>,
+    cell: ({ row }) => (
+      <div className="text-right font-medium">{row.getValue("role")}</div>
+    ),
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
     },
   },
   {
     id: "actions",
+    header: () => <div className="text-right">Actions</div>,
     enableHiding: false,
     cell: ({ row }) => {
       const payment = row.original;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <Ellipsis className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <Ellipsis className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+              // onClick={() => navigator.clipboard.writeText(payment.id)}
+              >
+                Reset Password
+              </DropdownMenuItem>
+              <DropdownMenuItem>Update Info</DropdownMenuItem>
+              {/* mainly for schools scope details */}
+              <DropdownMenuItem>View details</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
   },
@@ -223,6 +223,7 @@ export default function UsesrList() {
       rowSelection,
     },
   });
+
   return (
     <>
       <Menu />
@@ -238,8 +239,15 @@ export default function UsesrList() {
               onChange={(event) =>
                 table.getColumn("email")?.setFilterValue(event.target.value)
               }
-              className="max-w-sm"
+              className="max-w-sm mr-4"
             />
+            {table.getColumn("role") && (
+              <DataTableFacetedFilter
+                column={table.getColumn("role")}
+                title="role"
+                options={roles}
+              />
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">

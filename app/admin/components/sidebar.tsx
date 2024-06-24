@@ -6,6 +6,7 @@ import {
   ListCollapse,
   FilePlus2,
   School,
+  HousePlus,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -49,7 +50,11 @@ export function Sidebar() {
           <div className="space-y-1">
             <Button variant="ghost" className="w-full justify-start">
               <School className="mr-2 h-4 w-4" />
-              School
+              School List
+            </Button>
+            <Button variant="ghost" className="w-full justify-start">
+              <HousePlus className="mr-2 h-4 w-4" />
+              Add School
             </Button>
           </div>
         </div>

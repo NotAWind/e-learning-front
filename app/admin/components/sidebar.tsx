@@ -1,4 +1,7 @@
+"use client";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   UserRoundCog,
@@ -10,6 +13,7 @@ import {
 } from "lucide-react";
 
 export function Sidebar() {
+  const pathname = usePathname();
   return (
     <div className={`${cn("pb-12")}`}>
       <div className="space-y-4 py-4">
@@ -18,14 +22,24 @@ export function Sidebar() {
             User
           </h2>
           <div className="space-y-1">
-            <Button variant="secondary" className="w-full justify-start">
-              <UserRoundCog className="mr-2 h-4 w-4" />
-              Users List
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <UserRoundPlus className="mr-2 h-4 w-4" />
-              Add Users
-            </Button>
+            <Link key={"/admin/userList"} href={"/admin/userList"}>
+              <Button
+                variant={pathname === "/admin/userList" ? "secondary" : "ghost"}
+                className="w-full justify-start"
+              >
+                <UserRoundCog className="mr-2 h-4 w-4" />
+                Users List
+              </Button>
+            </Link>
+            <Link key={"/admin/addUser"} href={"/admin/addUser"}>
+              <Button
+                variant={pathname === "/admin/addUser" ? "secondary" : "ghost"}
+                className="w-full justify-start"
+              >
+                <UserRoundPlus className="mr-2 h-4 w-4" />
+                Add Users
+              </Button>
+            </Link>
           </div>
         </div>
         <div className="px-3 py-2">

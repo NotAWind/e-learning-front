@@ -1,4 +1,6 @@
+"use client";
 import * as React from "react";
+import Link from "next/link";
 import style from "./header.module.css";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -23,7 +25,7 @@ import { cn } from "@/lib/utils";
 
 export default function Header() {
   return (
-    <header className={`${style.header}`}>
+    <div className={`${style.header}`}>
       <Image
         className={style.logoImg}
         src="/logo.png"
@@ -38,8 +40,8 @@ export default function Header() {
             <NavigationMenuTrigger>My Course</NavigationMenuTrigger>
             <NavigationMenuContent>
               <ul>
-                <ListItem href="/docs" title="Finished"></ListItem>
-                <ListItem href="/docs/installation" title="Ongoing"></ListItem>
+                <ListItem href="/main/finished" title="Finished"></ListItem>
+                <ListItem href="/main/ongoing" title="Ongoing"></ListItem>
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
@@ -57,12 +59,17 @@ export default function Header() {
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
+            <DropdownMenuItem>
+              <Link key={"/main/myProfile"} href={"/main/myProfile"}>
+                My Account
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Password Reset</DropdownMenuItem>
             <DropdownMenuItem>Log Out</DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
-    </header>
+    </div>
   );
 }
 

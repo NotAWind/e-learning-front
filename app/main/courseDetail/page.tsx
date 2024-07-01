@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/header/header";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,8 +17,7 @@ import { Separator } from "@/components/ui/separator";
 
 export default function CourseDetail() {
   return (
-    <div className="mb-10">
-      <Header></Header>
+    <>
       <div className="grid grid-cols-7 bg-green-50 mt-[69px]">
         <div className="col-start-1 col-end-5 p-8 ">
           <div className="font-semibold text-5xl">Data Analysis</div>
@@ -194,6 +192,6 @@ export default function CourseDetail() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </>
   );
 }

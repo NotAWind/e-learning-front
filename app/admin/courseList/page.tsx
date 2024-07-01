@@ -121,6 +121,7 @@ export const columns: ColumnDef<Course>[] = [
                 Delete
               </DropdownMenuItem>
               <DropdownMenuItem>Edit/Details</DropdownMenuItem>
+              <DropdownMenuItem>View Comments</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

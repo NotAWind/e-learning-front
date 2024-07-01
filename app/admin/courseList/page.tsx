@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsUpDown, ChevronDown, Ellipsis } from "lucide-react";
+import { ChevronDown, Ellipsis } from "lucide-react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -16,7 +16,6 @@ import {
 } from "@tanstack/react-table";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -34,128 +33,66 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DataTableFacetedFilter } from "../components/table-faceted-filter";
-import { roles } from "./data";
+import { Badge } from "@/components/ui/badge";
 
-const data: User[] = [
+const data: Course[] = [
   {
-    id: "1",
-    name: "111",
-    email: "111@gmail.com",
-    school: [
-      {
-        id: "uni1",
-        name: "school A",
-      },
-      {
-        id: "uni2",
-        name: "school B",
-      },
-    ],
-    role: "teacher",
+    id: "courseId1",
+    name: "courseName11",
+    tags: ["Computer", "Graphics"],
+    type: "Live",
   },
   {
-    id: "2",
-    name: "222",
-    email: "222@gmail.com",
-    school: [
-      {
-        id: "uni2",
-        name: "school B",
-      },
-      {
-        id: "uni3",
-        name: "school C",
-      },
-    ],
-    role: "teacher",
+    id: "courseId2",
+    name: "courseName22",
+    tags: ["Business", "Graphics"],
+    type: "Record",
   },
   {
-    id: "4",
-    name: "333",
-    email: "333@gmail.com",
-    school: [
-      {
-        id: "uni4",
-        name: "school D",
-      },
-    ],
-    role: "student",
+    id: "courseId3",
+    name: "courseName33",
+    tags: ["Math"],
+    type: "Record",
   },
 ];
 
-export type School = {
+export type CourseType = "Live" | "Record";
+
+export type Course = {
   id: string;
   name: string;
+  tags: Array<string>;
+  type: CourseType;
 };
 
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  school: School[];
-  role: "teacher" | "student";
-};
-
-export const columns: ColumnDef<User>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
+export const columns: ColumnDef<Course>[] = [
   {
     accessorKey: "id",
     header: () => <div className="text-right">Id</div>,
     cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
   },
   {
-    accessorKey: "email",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="float-right"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ChevronsUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase text-right">{row.getValue("email")}</div>
-    ),
-  },
-  {
     accessorKey: "name",
     header: () => <div className="text-right">Name</div>,
     cell: ({ row }) => (
-      <div className="text-right font-medium">{row.getValue("name")}</div>
+      <div className="lowercase text-right">{row.getValue("name")}</div>
     ),
   },
   {
-    accessorKey: "role",
-    header: () => <div className="text-right">Role</div>,
+    accessorKey: "tags",
+    header: () => <div className="text-right">Tags</div>,
     cell: ({ row }) => (
-      <div className="text-right font-medium">{row.getValue("role")}</div>
+      <div className="text-right font-medium">
+        {(row.getValue("tags") as Array<string>)?.map?.((value: string) => (
+          <Badge className="mr-1">{value}</Badge>
+        ))}
+      </div>
     ),
+  },
+  {
+    accessorKey: "type",
+    header: () => <div className="text-right">Type</div>,
+    cell: ({ row }) => <div className="text-right">{row.getValue("type")}</div>,
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
     },
@@ -165,7 +102,7 @@ export const columns: ColumnDef<User>[] = [
     header: () => <div className="text-right">Actions</div>,
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original;
+      //   const payment = row.original;
 
       return (
         <div className="text-right">
@@ -181,11 +118,9 @@ export const columns: ColumnDef<User>[] = [
               <DropdownMenuItem
               // onClick={() => navigator.clipboard.writeText(payment.id)}
               >
-                Reset Password
+                Delete
               </DropdownMenuItem>
-              <DropdownMenuItem>Update Info</DropdownMenuItem>
-              {/* mainly for schools scope details */}
-              <DropdownMenuItem>View details</DropdownMenuItem>
+              <DropdownMenuItem>Edit/Details</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -194,7 +129,7 @@ export const columns: ColumnDef<User>[] = [
   },
 ];
 
-export default function UsesrList() {
+export default function CourseList() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -226,20 +161,13 @@ export default function UsesrList() {
     <>
       <div className="flex items-center py-4">
         <Input
-          placeholder="Search Emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+          placeholder="Search Course Name..."
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
+            table.getColumn("name")?.setFilterValue(event.target.value)
           }
           className="max-w-sm mr-4"
         />
-        {table.getColumn("role") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("role")}
-            title="role"
-            options={roles}
-          />
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -319,10 +247,6 @@ export default function UsesrList() {
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
         <div className="space-x-2">
           <Button
             variant="outline"

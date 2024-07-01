@@ -47,14 +47,29 @@ export function Sidebar() {
             Course
           </h2>
           <div className="space-y-1">
-            <Button variant="ghost" className="w-full justify-start">
-              <ListCollapse className="mr-2 h-4 w-4" />
-              Courses List
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <FilePlus2 className="mr-2 h-4 w-4" />
-              Course Add
-            </Button>
+            <Link key={"/admin/courseList"} href={"/admin/courseList"}>
+              <Button
+                variant={
+                  pathname === "/admin/courseList" ? "secondary" : "ghost"
+                }
+                className="w-full justify-start"
+              >
+                <ListCollapse className="mr-2 h-4 w-4" />
+                Courses List
+              </Button>
+            </Link>
+
+            <Link key={"/admin/addCourse"} href={"/admin/addCourse"}>
+              <Button
+                variant={
+                  pathname === "/admin/addCourse" ? "secondary" : "ghost"
+                }
+                className="w-full justify-start"
+              >
+                <FilePlus2 className="mr-2 h-4 w-4" />
+                Course Add
+              </Button>
+            </Link>
           </div>
         </div>
         <div className="px-3 py-2">
@@ -62,14 +77,29 @@ export function Sidebar() {
             School
           </h2>
           <div className="space-y-1">
-            <Button variant="ghost" className="w-full justify-start">
-              <School className="mr-2 h-4 w-4" />
-              School List
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <HousePlus className="mr-2 h-4 w-4" />
-              Add School
-            </Button>
+            <Link key={"/admin/schoolList"} href={"/admin/schoolList"}>
+              <Button
+                variant={
+                  pathname === "/admin/schoolList" ? "secondary" : "ghost"
+                }
+                className="w-full justify-start"
+              >
+                <School className="mr-2 h-4 w-4" />
+                School List
+              </Button>
+            </Link>
+
+            <Link key={"/admin/addSchool"} href={"/admin/addSchool"}>
+              <Button
+                variant={
+                  pathname === "/admin/addSchool" ? "secondary" : "ghost"
+                }
+                className="w-full justify-start"
+              >
+                <HousePlus className="mr-2 h-4 w-4" />
+                Add School
+              </Button>
+            </Link>
           </div>
         </div>
       </div>

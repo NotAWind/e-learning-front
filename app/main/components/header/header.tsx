@@ -26,14 +26,17 @@ import { cn } from "@/lib/utils";
 export default function Header() {
   return (
     <div className={`${style.header}`}>
-      <Image
-        className={style.logoImg}
-        src="/logo.png"
-        alt="Logo"
-        width={38}
-        height={38}
-        priority
-      />
+      <Link key={"/main/home"} href={"/main/home"}>
+        <Image
+          className="m-4 cursor-pointer"
+          src="/logo.png"
+          alt="Logo"
+          width={38}
+          height={38}
+          priority
+        />
+      </Link>
+
       <NavigationMenu className={style.navigationMenu}>
         <NavigationMenuList>
           <NavigationMenuItem>

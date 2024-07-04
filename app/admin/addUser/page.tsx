@@ -70,96 +70,91 @@ export default function AddUser() {
   }
 
   return (
-    <div className="px-10 pt-10">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Username</FormLabel>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="username"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Username</FormLabel>
+              <FormControl>
+                <Input placeholder="please enter user's name" {...field} />
+              </FormControl>
+              <FormDescription>This is usesr's name.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="please enter user's email" {...field} />
+              </FormControl>
+              <FormDescription>This is user's email.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Role</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <Input placeholder="please enter user's name" {...field} />
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select the user's role" />
+                  </SelectTrigger>
                 </FormControl>
-                <FormDescription>This is usesr's name.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="please enter user's email" {...field} />
-                </FormControl>
-                <FormDescription>This is user's email.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Role</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select the user's role" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="teacher">Teacher</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Different roles have different permissions.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="school"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Schools</FormLabel>
-                <FormControl>
-                  <MultipleSelector
-                    {...field}
-                    defaultOptions={OPTIONS}
-                    placeholder="Select the schools that the user has permission to view"
-                    emptyIndicator={
-                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                        no results found.
-                      </p>
-                    }
-                  />
-                </FormControl>
-                <FormDescription>
-                  Selecting a school means the user has permission to view the
-                  various courses or information published by that school.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <LoadingButton loading={loading} type="submit">
-            Submit
-          </LoadingButton>
-        </form>
-      </Form>
-    </div>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="teacher">Teacher</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Different roles have different permissions.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="school"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Schools</FormLabel>
+              <FormControl>
+                <MultipleSelector
+                  {...field}
+                  defaultOptions={OPTIONS}
+                  placeholder="Select the schools that the user has permission to view"
+                  emptyIndicator={
+                    <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                      no results found.
+                    </p>
+                  }
+                />
+              </FormControl>
+              <FormDescription>
+                Selecting a school means the user has permission to view the
+                various courses or information published by that school.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <LoadingButton loading={loading} type="submit">
+          Submit
+        </LoadingButton>
+      </form>
+    </Form>
   );
 }

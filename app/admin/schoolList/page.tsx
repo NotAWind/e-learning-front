@@ -134,7 +134,7 @@ export default function SchoolList() {
 
   return (
     <>
-      <div className="flex items-center py-4">
+      <div className="flex items-center pb-4">
         <Input
           placeholder="Search School Name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}

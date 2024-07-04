@@ -41,29 +41,27 @@ export default function AddSchool() {
   }
 
   return (
-    <div className="px-10 pt-10">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="schoolName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>School Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="please enter school's name" {...field} />
-                </FormControl>
-                <FormDescription>This is school's name.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+          control={form.control}
+          name="schoolName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>School Name</FormLabel>
+              <FormControl>
+                <Input placeholder="please enter school's name" {...field} />
+              </FormControl>
+              <FormDescription>This is school's name.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <LoadingButton loading={loading} type="submit">
-            Submit
-          </LoadingButton>
-        </form>
-      </Form>
-    </div>
+        <LoadingButton loading={loading} type="submit">
+          Submit
+        </LoadingButton>
+      </form>
+    </Form>
   );
 }

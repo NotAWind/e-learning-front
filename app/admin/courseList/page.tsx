@@ -160,7 +160,7 @@ export default function CourseList() {
 
   return (
     <>
-      <div className="flex items-center py-4">
+      <div className="flex items-center pb-4">
         <Input
           placeholder="Search Course Name..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}

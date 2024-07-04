@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
+import MultipleSelector, { Option } from "@/components/ui/multi-selector";
 import { z } from "zod";
-
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { CalendarDays, CircleHelp } from "lucide-react";
+import { format } from "date-fns";
 import {
   Form,
   FormControl,
@@ -25,26 +27,94 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
+const tagsOptionSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  disable: z.boolean().optional(),
+});
+
+const TAGSOPTIONS: Option[] = [
+  { label: "Math", value: "Math" },
+  { label: "Language", value: "Language" },
+  { label: "Computer", value: "Computer" },
+  { label: "Bussiness", value: "Bussiness" },
+  { label: "Chemistry", value: "Chemistry" },
+  { label: "Physics", value: "Physics" },
+];
 
 const profileFormSchema = z.object({
-  username: z
+  courseTitle: z.string().min(1, {
+    message: "Course name can not be empty.",
+  }),
+  introduction: z
     .string()
-    .min(2, {
-      message: "Username must be at least 2 characters.",
+    .min(10, {
+      message: "Introduction must be at least 10 characters.",
     })
-    .max(30, {
-      message: "Username must not be longer than 30 characters.",
+    .max(1000, {
+      message: "Introduction must not be longer than 30 characters.",
     }),
-  email: z
-    .string({
-      required_error: "Please select an email to display.",
-    })
-    .email(),
-  bio: z.string().max(160).min(4),
-  urls: z
+  cover: z.object({
+    images: z
+      .any()
+      .refine(
+        (files) => {
+          return Array.from(files).every((file) => file instanceof File);
+        },
+        { message: "Expected a file" }
+      )
+      .refine(
+        (files) =>
+          Array.from(files).every((file) =>
+            ACCEPTED_IMAGE_TYPES.includes(file?.type)
+          ),
+        "Only these types are allowed .jpg, .jpeg, .png and .webp"
+      ),
+  }),
+  teacher: z.string().min(1, {
+    message: "please fill in at least one teacher!",
+  }),
+  startTime: z.date({
+    required_error: "A date of birth is required.",
+  }),
+  type: z.string({
+    required_error: "Please select the course's type to display.",
+  }),
+  tags: z.array(tagsOptionSchema).min(1),
+  weeklyCourses: z
     .array(
       z.object({
-        value: z.string().url({ message: "Please enter a valid URL." }),
+        value: z.string().optional(),
       })
     )
     .optional(),
@@ -52,13 +122,7 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-const defaultValues: Partial<ProfileFormValues> = {
-  bio: "I own a computer.",
-  urls: [
-    { value: "https://shadcn.com" },
-    { value: "http://twitter.com/shadcn" },
-  ],
-};
+const defaultValues: Partial<ProfileFormValues> = {};
 
 export default function AddCourse() {
   const form = useForm<ProfileFormValues>({
@@ -68,7 +132,7 @@ export default function AddCourse() {
   });
 
   const { fields, append } = useFieldArray({
-    name: "urls",
+    name: "weeklyCourses",
     control: form.control,
   });
 
@@ -81,100 +145,234 @@ export default function AddCourse() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="username"
+          name="courseTitle"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Course Title</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input placeholder="course title" {...field} />
               </FormControl>
-              <FormDescription>
-                This is your public display name. It can be your real name or a
-                pseudonym. You can only change this once every 30 days.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a verified email to display" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="m@example.com">m@example.com</SelectItem>
-                  <SelectItem value="m@google.com">m@google.com</SelectItem>
-                  <SelectItem value="m@support.com">m@support.com</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                You can manage verified email addresses in your{" "}
-                <Link href="/examples/forms">email settings</Link>.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="bio"
+          name="introduction"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Bio</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Tell us a little bit about yourself"
+                  placeholder="Tell us a little bit about this course"
                   className="resize-none"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                You can <span>@mention</span> other users and organizations to
-                link to them.
+                Briefly introduce the main content of the course.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div>
-          {fields.map((field, index) => (
-            <FormField
-              control={form.control}
-              key={field.id}
-              name={`urls.${index}.value`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={cn(index !== 0 && "sr-only")}>
-                    URLs
-                  </FormLabel>
-                  <FormDescription className={cn(index !== 0 && "sr-only")}>
-                    Add links to your website, blog, or social media profiles.
-                  </FormDescription>
+        <FormField
+          control={form.control}
+          name="cover"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Cover</FormLabel>
+              <FormControl>
+                <Input type="file" multiple {...field} />
+              </FormControl>
+              <FormDescription>upload course'cover</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="teacher"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Teacher</FormLabel>
+              <FormControl>
+                <Input placeholder="teacher's name" {...field} />
+              </FormControl>
+              <FormDescription>
+                The instructors of the course, if there are multiple, separate
+                the names with commas.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="startTime"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <FormLabel>Start Time</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
                   <FormControl>
-                    <Input {...field} />
+                    <Button
+                      variant={"outline"}
+                      className={cn(
+                        "w-[240px] pl-3 text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarDays className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            onClick={() => append({ value: "" })}
-          >
-            Add URL
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={field.value}
+                    onSelect={field.onChange}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+              <FormDescription>
+                Your date of birth is used to calculate your age.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select the course' stype" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Live Stream">Live Stream</SelectItem>
+                  <SelectItem value="Record">Record</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="tags"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tags</FormLabel>
+              <FormControl>
+                <MultipleSelector
+                  {...field}
+                  defaultOptions={TAGSOPTIONS}
+                  placeholder="Select the category of the course"
+                  emptyIndicator={
+                    <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                      no results found.
+                    </p>
+                  }
+                />
+              </FormControl>
+              <FormDescription>
+                Select the category of the course.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex">
+          <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight mr-4">
+            Weekly Course
+          </h3>
+          <Button type="button" onClick={() => append({ value: "" })}>
+            Add Week
           </Button>
         </div>
+
+        <ol className="relative border-s border-gray-200 dark:border-gray-700">
+          {fields.map((field, index) => (
+            <li key={`week-${index + 1}`} className="mb-10 ms-4">
+              <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -start-1.5 border border-white dark:border-gray-900 dark:bg-gray-700"></div>
+
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button type="button" variant="ghost">
+                      Week {index + 1}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <SheetTitle>Edit profile</SheetTitle>
+                      <SheetDescription>
+                        Make changes to your profile here. Click save when
+                        you're done.
+                      </SheetDescription>
+                    </SheetHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right">
+                          Theme
+                        </Label>
+                        <Input className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="username" className="text-right">
+                          Summary
+                        </Label>
+                        <Textarea className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="username" className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="flex">
+                                Key Words <CircleHelp />
+                              </TooltipTrigger>
+                              <TooltipContent className="w-72">
+                                <p className="text-sm text-muted-foreground text-left">
+                                  Enter the keywords for this week's course,
+                                  separated by commas if there are multiple
+                                  keywords
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Label>
+                        <Textarea className="col-span-3" />
+                      </div>
+                    </div>
+                    <SheetFooter>
+                      <SheetClose asChild>
+                        <Button type="submit">Save changes</Button>
+                      </SheetClose>
+                    </SheetFooter>
+                  </SheetContent>
+                </Sheet>
+              </h3>
+            </li>
+          ))}
+        </ol>
+
         <Button type="submit">Update profile</Button>
       </form>
     </Form>

@@ -23,10 +23,8 @@ import style from "./page.module.css";
 
 export default function Home() {
   return (
-    <div className={`${style.content} px-5  mt-[80px]`}>
-      <div
-        className={`${style.searchBar} grid grid-cols-3 gap-x-1 gap-y-2.5 max-w-[650px]`}
-      >
+    <div className={`px-5  mt-[80px]`}>
+      <div className={`grid grid-cols-3 gap-x-1 gap-y-2.5 max-w-[650px]`}>
         <Input className={"col-span-3"} type="search" placeholder="Search" />
         <Select>
           <SelectTrigger>
@@ -60,7 +58,7 @@ export default function Home() {
         </Select>
       </div>
       <div
-        className={`${style.courseList} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-screen-xl py-8 gap-5`}
+        className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-screen-xl py-8 gap-5`}
       >
         {Array.from({ length: 10 }, (_, idx) => idx).map((value) => (
           <Link key={value} href={"/main/courseDetail"}>

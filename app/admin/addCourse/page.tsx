@@ -239,9 +239,6 @@ export default function AddCourse() {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -320,33 +317,102 @@ export default function AddCourse() {
                       Week {index + 1}
                     </Button>
                   </SheetTrigger>
-                  <SheetContent>
+                  <SheetContent className="w-[700px] sm:max-w-[700px]">
                     <SheetHeader>
-                      <SheetTitle>Edit profile</SheetTitle>
+                      <SheetTitle>Edit Weekly Course</SheetTitle>
                       <SheetDescription>
-                        Make changes to your profile here. Click save when
+                        Make changes to the weekly course here. Click save when
                         you're done.
                       </SheetDescription>
                     </SheetHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
-                          Theme
+                        <Label htmlFor="theme" className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="flex items-center ml-auto">
+                                <span className="mr-2">Theme</span>
+                                <CircleHelp size={20} color="#64748b" />
+                              </TooltipTrigger>
+                              <TooltipContent className="w-72">
+                                <p className="text-sm text-muted-foreground text-left">
+                                  This week's course topic/title
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </Label>
                         <Input className="col-span-3" />
                       </div>
+
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="username" className="text-right">
-                          Summary
+                        <Label
+                          htmlFor="live stream link"
+                          className="text-right"
+                        >
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="flex items-center ml-auto">
+                                <span className="mr-2">Live Stream Link</span>
+                                <CircleHelp size={20} color="#64748b" />
+                              </TooltipTrigger>
+                              <TooltipContent className="w-72">
+                                <p className="text-sm text-muted-foreground text-left">
+                                  If this week's course type is a live stream,
+                                  fill in the live stream link here
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Label>
+                        <Input className="col-span-3" />
+                      </div>
+
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="record video" className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="flex items-center ml-auto">
+                                <span className="mr-2">Record Video</span>
+                                <CircleHelp size={20} color="#64748b" />
+                              </TooltipTrigger>
+                              <TooltipContent className="w-72">
+                                <p className="text-sm text-muted-foreground text-left">
+                                  If this week's course type is a recorded
+                                  video, upload the recorded video here
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Label>
+                        <Input type="file" className="col-span-3" />
+                      </div>
+
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="summary" className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="flex items-center ml-auto">
+                                <span className="mr-2">Summary</span>
+                                <CircleHelp size={20} color="#64748b" />
+                              </TooltipTrigger>
+                              <TooltipContent className="w-72">
+                                <p className="text-sm text-muted-foreground text-left">
+                                  Briefly summarize this week's course
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </Label>
                         <Textarea className="col-span-3" />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="username" className="text-right">
+                        <Label htmlFor="key Words" className="text-right">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger className="flex">
-                                Key Words <CircleHelp />
+                              <TooltipTrigger className="flex items-center ml-auto">
+                                <span className="mr-2">Key Words</span>
+                                <CircleHelp size={20} color="#64748b" />
                               </TooltipTrigger>
                               <TooltipContent className="w-72">
                                 <p className="text-sm text-muted-foreground text-left">
@@ -359,6 +425,25 @@ export default function AddCourse() {
                           </TooltipProvider>
                         </Label>
                         <Textarea className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="materials" className="text-right">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger className="flex items-center ml-auto">
+                                <span className="mr-2">Materials</span>
+                                <CircleHelp size={20} color="#64748b" />
+                              </TooltipTrigger>
+                              <TooltipContent className="w-72">
+                                <p className="text-sm text-muted-foreground text-left">
+                                  Upload additional study materials or other
+                                  files
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </Label>
+                        <Input type="file" className="col-span-3" />
                       </div>
                     </div>
                     <SheetFooter>

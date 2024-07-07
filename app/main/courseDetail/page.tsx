@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 export default function CourseDetail() {
   return (
@@ -58,20 +59,23 @@ export default function CourseDetail() {
               <AccordionTrigger>Week 1</AccordionTrigger>
               <AccordionContent>
                 <div className="flex">
-                  <div className="relative w-[100px] h-[100px] relative cursor-pointer">
-                    <Image
-                      className="rounded-xl"
-                      src="/flower.jpg"
-                      alt="course cover"
-                      fill
-                      style={{
-                        objectFit: "cover",
-                      }}
-                    />
-                    <div className="p-1.5 rounded-full absolute top-[34px] left-[34px] backdrop-blur-md bg-zinc-500/50">
-                      <Play size={20} color="white" fill="white" />
+                  <Link key={"/main/recordDetail"} href={"/main/recordDetail"}>
+                    <div className="relative w-[100px] h-[100px] relative cursor-pointer">
+                      <Image
+                        className="rounded-xl"
+                        src="/flower.jpg"
+                        alt="course cover"
+                        fill
+                        style={{
+                          objectFit: "cover",
+                        }}
+                      />
+                      <div className="p-1.5 rounded-full absolute top-[34px] left-[34px] backdrop-blur-md bg-zinc-500/50">
+                        <Play size={20} color="white" fill="white" />
+                      </div>
                     </div>
-                  </div>
+                  </Link>
+
                   <div className="flex-1 ml-7">
                     <div className="text-sm font-semibold">
                       Week 1 Course Theme

@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, CircleHelp } from "lucide-react";
+import { CalendarDays, CircleHelp, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   Form,
@@ -131,7 +131,7 @@ export default function AddCourse() {
     mode: "onChange",
   });
 
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     name: "weeklyCourses",
     control: form.control,
   });
@@ -453,6 +453,15 @@ export default function AddCourse() {
                     </SheetFooter>
                   </SheetContent>
                 </Sheet>
+                <Button
+                  className="ml-2"
+                  variant="destructive"
+                  size="icon"
+                  type="button"
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </h3>
             </li>
           ))}

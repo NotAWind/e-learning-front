@@ -161,7 +161,7 @@ export default function AddCourse() {
           name="introduction"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Bio</FormLabel>
+              <FormLabel>Introduction</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Tell us a little bit about this course"

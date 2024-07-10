@@ -186,6 +186,7 @@ export const columns: ColumnDef<User>[] = [
               <DropdownMenuItem>Update Info</DropdownMenuItem>
               {/* mainly for schools scope details */}
               <DropdownMenuItem>View details</DropdownMenuItem>
+              <DropdownMenuItem>Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

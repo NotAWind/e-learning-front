@@ -63,6 +63,11 @@ const tagsOptionSchema = z.object({
   disable: z.boolean().optional(),
 });
 
+const schoolOptionSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+});
+
 const TAGSOPTIONS: Option[] = [
   { label: "Math", value: "Math" },
   { label: "Language", value: "Language" },
@@ -70,6 +75,25 @@ const TAGSOPTIONS: Option[] = [
   { label: "Bussiness", value: "Bussiness" },
   { label: "Chemistry", value: "Chemistry" },
   { label: "Physics", value: "Physics" },
+];
+
+const SCHOOLOPTIONS: Option[] = [
+  {
+    label: "School A",
+    value: "School A",
+  },
+  {
+    label: "School B",
+    value: "School B",
+  },
+  {
+    label: "School C",
+    value: "School C",
+  },
+  {
+    label: "School D",
+    value: "School D",
+  },
 ];
 
 const profileFormSchema = z.object({
@@ -118,6 +142,7 @@ const profileFormSchema = z.object({
       })
     )
     .optional(),
+  schools: z.array(schoolOptionSchema).min(1),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
@@ -291,6 +316,31 @@ export default function AddCourse() {
               </FormControl>
               <FormDescription>
                 Select the category of the course.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="schools"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Schools</FormLabel>
+              <FormControl>
+                <MultipleSelector
+                  {...field}
+                  defaultOptions={SCHOOLOPTIONS}
+                  placeholder="Select the school"
+                  emptyIndicator={
+                    <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                      no results found.
+                    </p>
+                  }
+                />
+              </FormControl>
+              <FormDescription>
+                Select the school to which this course belongs.
               </FormDescription>
               <FormMessage />
             </FormItem>

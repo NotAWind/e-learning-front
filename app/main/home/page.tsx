@@ -67,7 +67,7 @@ export default function Home() {
               <span
                 className={`${style.courseType} text-xs py-0.5 px-2.5 absolute top-0 right-0`}
               >
-                Live Stream
+                Record
               </span>
               <CardHeader>
                 <div className="flex items-center ">

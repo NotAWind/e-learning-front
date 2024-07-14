@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "./components/header/header";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/app/contexts/sessionContext";
@@ -13,18 +13,20 @@ export default function MainLayout({
 }) {
   const { session } = useSession();
   const router = useRouter();
-
-  console.log("session", session);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // if (!session) {
-    //   router.push("/login");
-    // }
+    if (!session) {
+      router.push("/login");
+    } else {
+      setLoading(false);
+    }
   }, [session, router]);
 
-  // if (!session) {
-  //   return <Spinner size="large" />;
-  // }
+  if (loading) {
+    return <Spinner size="large" />;
+  }
+
   return (
     <>
       <Header />

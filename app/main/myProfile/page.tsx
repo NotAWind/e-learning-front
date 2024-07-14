@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RequestPrefix } from "@/app/utils/request";
+import { useSession } from "@/app/contexts/sessionContext";
 
 const profileFormSchema = z.object({
   username: z
@@ -44,25 +45,26 @@ const defaultValues: Partial<ProfileFormValues> = {
 };
 
 function ProfileForm() {
-  const [profile, setProfile] = useState<ProfileFormValues | null>(null);
-
-  useEffect(() => {
-    fetch(`${RequestPrefix}/users/00001`)
-      .then((response) => response.json())
-      .then((data) => {
-        setProfile({
-          username: data.userName,
-          email: data.email,
-          avatar: new File([], data.avatar),
-        });
-      });
-  }, []);
-
+  const { session } = useSession();
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: profile || defaultValues,
+    defaultValues: defaultValues,
     mode: "onChange",
   });
+
+  useEffect(() => {
+    if (session) {
+      fetch(`${RequestPrefix}/users/${session?.id}`)
+        .then((response) => response.json())
+        .then((data) => {
+          form.reset({
+            username: data.userName,
+            email: data.email,
+            avatar: new File([], data.avatar),
+          });
+        });
+    }
+  }, [session]);
 
   const onSubmit = async (data: ProfileFormValues) => {
     const formData = new FormData();
@@ -70,7 +72,7 @@ function ProfileForm() {
     formData.append("email", data.email);
     formData.append("avatar", data.avatar);
 
-    const response = await fetch("http://localhost:3001/upload", {
+    const response = await fetch(`${RequestPrefix}/updateProfile`, {
       method: "POST",
       body: formData,
     });
@@ -78,10 +80,6 @@ function ProfileForm() {
     const result = await response.json();
     console.log(result);
   };
-
-  if (!profile) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <Form {...form}>

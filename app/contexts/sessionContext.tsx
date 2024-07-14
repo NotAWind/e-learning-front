@@ -1,10 +1,16 @@
 "use client";
 
-import React, { createContext, useState, useContext, ReactNode } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from "react";
 
 // Define the type for the user session data
 interface UserSession {
-  userId: string;
+  id: number;
   email: string;
   userName: string;
   role: string;
@@ -29,7 +35,21 @@ interface SessionProviderProps {
 export const SessionProvider: React.FC<SessionProviderProps> = ({
   children,
 }) => {
-  const [session, setSession] = useState<UserSession | null>(null);
+  const [session, setSession] = useState<UserSession | null>(() => {
+    if (typeof window !== "undefined") {
+      const storedSession = localStorage.getItem("session");
+      return storedSession ? JSON.parse(storedSession) : null;
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (session) {
+      localStorage.setItem("session", JSON.stringify(session));
+    } else {
+      localStorage.removeItem("session");
+    }
+  }, [session]);
 
   return (
     <SessionContext.Provider value={{ session, setSession }}>

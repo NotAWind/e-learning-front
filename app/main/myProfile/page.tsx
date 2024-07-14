@@ -1,5 +1,6 @@
 "use client";
-import * as React from "react";
+import React, { useEffect, useState } from "react";
+
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -8,13 +9,13 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RequestPrefix } from "@/app/utils/request";
 
 const profileFormSchema = z.object({
   username: z
@@ -43,14 +44,43 @@ const defaultValues: Partial<ProfileFormValues> = {
 };
 
 function ProfileForm() {
+  const [profile, setProfile] = useState<ProfileFormValues | null>(null);
+
+  useEffect(() => {
+    fetch(`${RequestPrefix}/users/00001`)
+      .then((response) => response.json())
+      .then((data) => {
+        setProfile({
+          username: data.userName,
+          email: data.email,
+          avatar: new File([], data.avatar),
+        });
+      });
+  }, []);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: profile || defaultValues,
     mode: "onChange",
   });
 
-  function onSubmit(data: ProfileFormValues) {
-    console.log(data);
+  const onSubmit = async (data: ProfileFormValues) => {
+    const formData = new FormData();
+    formData.append("username", data.username);
+    formData.append("email", data.email);
+    formData.append("avatar", data.avatar);
+
+    const response = await fetch("http://localhost:3001/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+    console.log(result);
+  };
+
+  if (!profile) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -65,7 +95,6 @@ function ProfileForm() {
               <FormControl>
                 <Input placeholder="your name" {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
@@ -79,7 +108,6 @@ function ProfileForm() {
               <FormControl>
                 <Input placeholder="please enter your email" {...field} />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
@@ -91,16 +119,19 @@ function ProfileForm() {
             <FormItem>
               <FormLabel className="text-white">Avatar</FormLabel>
               <FormControl>
-                <Input className="text-slate-500" type="file" {...field} />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => field.onChange(e?.target?.files?.[0])}
+                />
               </FormControl>
-
               <FormMessage />
             </FormItem>
           )}
         />
         <Button
           type="submit"
-          className="absolute left-1/2  transform -translate-x-1/2 "
+          className="absolute left-1/2 transform -translate-x-1/2"
         >
           Update profile
         </Button>

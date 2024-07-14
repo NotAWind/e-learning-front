@@ -18,8 +18,10 @@ import { Label } from "@/components/ui/label";
 import { School, User, LogIn } from "lucide-react";
 import { RequestPrefix } from "@/app/utils/request";
 import { useToast } from "@/components/ui/use-toast";
+import { useSession } from "@/app/contexts/sessionContext";
 
 export default function Login() {
+  const { setSession } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("admin");
@@ -44,6 +46,7 @@ export default function Login() {
       } else {
         alert("Incorrect role");
       }
+      setSession(user); // Set user information in the session
     } else {
       toast({
         variant: "destructive",

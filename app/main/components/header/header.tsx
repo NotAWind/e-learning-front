@@ -43,8 +43,11 @@ export default function Header() {
             <NavigationMenuTrigger>My Course</NavigationMenuTrigger>
             <NavigationMenuContent>
               <ul>
-                <ListItem href="/main/finished" title="Finished"></ListItem>
-                <ListItem href="/main/ongoing" title="Ongoing"></ListItem>
+                <ListItem
+                  href="/main/finishedCourse"
+                  title="Finished"
+                ></ListItem>
+                <ListItem href="/main/ongoingCourse" title="Ongoing"></ListItem>
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>

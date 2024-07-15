@@ -2,5 +2,5 @@ import CourseList from "../components/courseList/courseList";
 import { RequestPrefix } from "@/app/utils/request";
 
 export default function Home() {
-  return <CourseList fetchUrl={`${RequestPrefix}/courses`} />;
+  return <CourseList fetchUrl={`${RequestPrefix}/ongoing-courses`} />;
 }

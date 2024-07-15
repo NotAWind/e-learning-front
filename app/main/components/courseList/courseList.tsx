@@ -77,7 +77,7 @@ export default function CourseList({ fetchUrl }: CourseListProps) {
         className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-screen-xl py-8 gap-5`}
       >
         {filteredCourses.map((course) => (
-          <Link key={course.id} href={`/main/courseDetail/${course.id}`}>
+          <Link key={course.id} href={`/main/courseDetail/`}>
             <Card className="w-full overflow-hidden relative cursor-pointer">
               <img
                 className="object-cover h-56 w-full"

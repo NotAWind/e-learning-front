@@ -123,7 +123,7 @@ export default function CourseDetail() {
                 <AccordionTrigger>Week {week.week}</AccordionTrigger>
                 <AccordionContent>
                   <div className="flex">
-                    <Link href={`/main/recordDetail/${week.week}`}>
+                    <Link href={`/main/recordDetail`}>
                       <div className="relative w-[100px] h-[100px] relative cursor-pointer">
                         <Image
                           className="rounded-xl"

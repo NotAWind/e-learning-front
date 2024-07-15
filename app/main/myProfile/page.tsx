@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { RequestPrefix } from "@/app/utils/request";
 import { useSession } from "@/app/contexts/sessionContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const profileFormSchema = z.object({
   username: z
@@ -51,6 +52,7 @@ function ProfileForm() {
     defaultValues: defaultValues,
     mode: "onChange",
   });
+  const { toast } = useToast();
 
   useEffect(() => {
     if (session) {
@@ -67,18 +69,34 @@ function ProfileForm() {
   }, [session]);
 
   const onSubmit = async (data: ProfileFormValues) => {
-    const formData = new FormData();
-    formData.append("username", data.username);
-    formData.append("email", data.email);
-    formData.append("avatar", data.avatar);
+    const fakeAvatarUrl = "https://github.com/shadcn.png";
+    const updatedUser = {
+      userName: data.username,
+      email: data.email,
+      avatar: fakeAvatarUrl,
+    };
 
-    const response = await fetch(`${RequestPrefix}/updateProfile`, {
-      method: "POST",
-      body: formData,
+    const response = await fetch(`${RequestPrefix}/users/${session?.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUser),
     });
 
     const result = await response.json();
-    console.log(result);
+
+    if (response.ok) {
+      toast({
+        title: "Profile Updated",
+        description: "You have successfully updated your profile.",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "There was an error updating your profile.",
+      });
+    }
   };
 
   return (

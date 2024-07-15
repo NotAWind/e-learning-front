@@ -1,15 +1,8 @@
 "use client";
 
-import * as React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -18,85 +11,78 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Star, University } from "lucide-react";
-
+import { RequestPrefix } from "@/app/utils/request";
 import style from "./page.module.css";
 
+interface Course {
+  id: number;
+  image: string;
+  type: string;
+  university: string;
+  title: string;
+  description: string;
+  rating: number;
+  reviews: string;
+  tags: string[];
+}
+
 export default function Home() {
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const response = await fetch(`${RequestPrefix}/courses`);
+      const data: Course[] = await response.json();
+      setCourses(data);
+    };
+    fetchCourses();
+  }, []);
+
   return (
-    <div className={`px-5  mt-[80px]`}>
+    <div className={`px-5 mt-[80px]`}>
       <div className={`grid grid-cols-3 gap-x-1 gap-y-2.5 max-w-[650px]`}>
         <Input className={"col-span-3"} type="search" placeholder="Search" />
-        <Select>
-          <SelectTrigger>
-            <SelectValue placeholder="School" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="light">School A</SelectItem>
-            <SelectItem value="dark">School B</SelectItem>
-            <SelectItem value="system">Scholl C</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select>
-          <SelectTrigger>
-            <SelectValue placeholder="Tag" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="light">Math</SelectItem>
-            <SelectItem value="dark">Computer</SelectItem>
-            <SelectItem value="system">Philosophy</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select>
-          <SelectTrigger>
-            <SelectValue placeholder="Teacher" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="light">Teacher A</SelectItem>
-            <SelectItem value="dark">Teacher B</SelectItem>
-            <SelectItem value="system">Teacher C</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
       <div
         className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-screen-xl py-8 gap-5`}
       >
-        {Array.from({ length: 10 }, (_, idx) => idx).map((value) => (
-          <Link key={value} href={"/main/courseDetail"}>
+        {courses.map((course) => (
+          <Link key={course.id} href={"/main/courseDetail"}>
             <Card className="w-full overflow-hidden relative cursor-pointer">
-              <img className="object-cover h-56 w-full" src="/trees.jpg"></img>
+              <img
+                className="object-cover h-56 w-full"
+                src={course.image}
+                alt={course.title}
+              />
               <span
                 className={`${style.courseType} text-xs py-0.5 px-2.5 absolute top-0 right-0`}
               >
-                Record
+                {course.type}
               </span>
               <CardHeader>
                 <div className="flex items-center ">
                   <University size={28} color="green" absoluteStrokeWidth />
                   <span className="pl-2 line-clamp-2 text-muted-foreground text-sm">
-                    Limerick University
+                    {course.university}
                   </span>
                 </div>
-
                 <CardTitle className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  Data Analytics
+                  {course.title}
                 </CardTitle>
                 <CardDescription className="line-clamp-2">
-                  This is your path to a career in data analytics. In this
-                  program, you’ll learn in-demand skills that will have you
-                  job-ready in less than 6 months. No degree or experience
-                  required.
+                  {course.description}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center text-sm ">
-                  <span className="pr-1">4.8</span>
+                  <span className="pr-1">{course.rating}</span>
                   <Star size={16} fill="green" color="green" />
                   <span className="pl-1 text-muted-foreground">
-                    (1k reviews)
+                    ({course.reviews})
                   </span>
                 </div>
-                <span className="text-sm  text-muted-foreground">
-                  Computer·Math
+                <span className="text-sm text-muted-foreground">
+                  {course.tags.join("·")}
                 </span>
               </CardContent>
             </Card>

@@ -19,6 +19,7 @@ import { School, User, LogIn } from "lucide-react";
 import { RequestPrefix } from "@/app/utils/request";
 import { useToast } from "@/components/ui/use-toast";
 import { useSession } from "@/app/contexts/sessionContext";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
   const { setSession } = useSession();
@@ -26,6 +27,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("admin");
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleLogin = async (e: any) => {
     const response = await fetch(
@@ -38,7 +40,7 @@ export default function Login() {
     if (users.length > 0) {
       const user = users[0];
       if (role === "student" && user.role === role) {
-        alert(`Welcome student`);
+        router.push("/main/home");
       } else if (role === "admin" && user.role === "teacher") {
         alert(`Welcome teacher`);
       } else if (role === "admin" && user.role === "admin") {

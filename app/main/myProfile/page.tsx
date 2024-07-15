@@ -84,8 +84,6 @@ function ProfileForm() {
       body: JSON.stringify(updatedUser),
     });
 
-    const result = await response.json();
-
     if (response.ok) {
       toast({
         title: "Profile Updated",
@@ -93,6 +91,7 @@ function ProfileForm() {
       });
     } else {
       toast({
+        variant: "destructive",
         title: "Error",
         description: "There was an error updating your profile.",
       });

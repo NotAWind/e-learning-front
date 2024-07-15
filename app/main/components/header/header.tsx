@@ -22,8 +22,48 @@ import {
 } from "@/components/ui/navigation-menu";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/app/contexts/sessionContext";
+import { useToast } from "@/components/ui/use-toast";
+import { RequestPrefix } from "@/app/utils/request";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
+  const { session, setSession } = useSession();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handlePasswordReset = async () => {
+    const updatedUser = {
+      password: "123456",
+    };
+
+    const response = await fetch(`${RequestPrefix}/users/${session?.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUser),
+    });
+
+    if (response.ok) {
+      toast({
+        title: "Profile Updated",
+        description: "You have successfully reset your password.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "There was an error resetting your password.",
+      });
+    }
+  };
+
+  const handleLogOut = () => {
+    setSession(null);
+    router.push("/login");
+  };
+
   return (
     <div className={`${style.header}`}>
       <Link key={"/main/home"} href={"/main/home"}>
@@ -70,8 +110,10 @@ export default function Header() {
                 My Account
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>Password Reset</DropdownMenuItem>
-            <DropdownMenuItem>Log Out</DropdownMenuItem>
+            <DropdownMenuItem onClick={handlePasswordReset}>
+              Password Reset
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogOut}>Log Out</DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

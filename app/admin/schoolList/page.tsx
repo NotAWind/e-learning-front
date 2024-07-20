@@ -33,76 +33,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import EditSchoolDialog from "./components/editSchoolDialog";
+import { School } from "./utils/type";
+import { RequestPrefix } from "@/app/utils/request";
 
-const data: School[] = [
-  {
-    id: "1111",
-    name: "school A",
-  },
-  {
-    id: "2222",
-    name: "school B",
-  },
-  {
-    id: "1234",
-    name: "school C",
-  },
-  {
-    id: "4567",
-    name: "school D",
-  },
-];
-
-export type School = {
-  id: string;
-  name: string;
-};
-
-export const columns: ColumnDef<School>[] = [
-  {
-    accessorKey: "id",
-    header: () => <div className="text-right">Id</div>,
-    cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
-  },
-  {
-    accessorKey: "name",
-    header: () => <div className="text-right">Name</div>,
-    cell: ({ row }) => (
-      <div className="lowercase text-right">{row.getValue("name")}</div>
-    ),
-  },
-  {
-    id: "actions",
-    header: () => <div className="text-right">Actions</div>,
-    enableHiding: false,
-    cell: ({ row }) => {
-      //   const payment = row.original;
-
-      return (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <Ellipsis className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-              // onClick={() => navigator.clipboard.writeText(payment.id)}
-              >
-                Delete
-              </DropdownMenuItem>
-              <DropdownMenuItem>Edit</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
+const API_URL = `${RequestPrefix}/schools`;
 
 export default function SchoolList() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -112,6 +47,86 @@ export default function SchoolList() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [data, setData] = React.useState<School[]>([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [selectedSchool, setSelectedSchool] = React.useState<School | null>(
+    null
+  );
+
+  React.useEffect(() => {
+    fetch(API_URL)
+      .then((response) => response.json())
+      .then((data) => setData(data));
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    await fetch(`${API_URL}/${id}`, {
+      method: "DELETE",
+    });
+    setData(data.filter((school) => school.id !== id));
+  };
+
+  const handleEdit = (school: School) => {
+    setSelectedSchool(school);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSave = async (school: School) => {
+    await fetch(`${API_URL}/${school.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(school),
+    });
+    setData(data.map((sch) => (sch.id === school.id ? school : sch)));
+    setIsEditDialogOpen(false);
+  };
+
+  const columns: ColumnDef<School>[] = [
+    {
+      accessorKey: "id",
+      header: () => <div className="text-right">Id</div>,
+      cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
+    },
+    {
+      accessorKey: "name",
+      header: () => <div className="text-right">Name</div>,
+      cell: ({ row }) => (
+        <div className="lowercase text-right">{row.getValue("name")}</div>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const school = row.original;
+
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <Ellipsis className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleDelete(school.id)}>
+                  Delete
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleEdit(school)}>
+                  Edit
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
 
   const table = useReactTable({
     data,
@@ -241,6 +256,12 @@ export default function SchoolList() {
           </Button>
         </div>
       </div>
+      <EditSchoolDialog
+        school={selectedSchool}
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSave={handleSave}
+      />
     </>
   );
 }

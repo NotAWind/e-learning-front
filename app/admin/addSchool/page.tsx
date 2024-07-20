@@ -14,6 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RequestPrefix } from "@/app/utils/request";
+import { useToast } from "@/components/ui/use-toast";
+
+const API_URL = `${RequestPrefix}/schools`;
 
 const formSchema = z.object({
   schoolName: z.string().min(1, {
@@ -30,14 +34,37 @@ export default function AddSchool() {
     },
     mode: "onChange",
   });
+  const { toast } = useToast();
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     setLoading(true);
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: data.schoolName }),
+      });
 
-    setTimeout(() => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const result = await response.json();
+      toast({
+        title: "Successful!",
+        description: `Add School ${data.schoolName} Successfully!`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: `Failed to add school: ${error}`,
+      });
+    } finally {
       setLoading(false);
-      console.log(JSON.stringify(data, null, 2));
-    }, 500);
+    }
   }
 
   return (
@@ -50,9 +77,9 @@ export default function AddSchool() {
             <FormItem>
               <FormLabel>School Name</FormLabel>
               <FormControl>
-                <Input placeholder="please enter school's name" {...field} />
+                <Input placeholder="Please enter school's name" {...field} />
               </FormControl>
-              <FormDescription>This is school's name.</FormDescription>
+              <FormDescription>{`This is the school's name.`}</FormDescription>
               <FormMessage />
             </FormItem>
           )}

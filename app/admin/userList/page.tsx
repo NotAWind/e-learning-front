@@ -35,167 +35,28 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTableFacetedFilter } from "../components/table-faceted-filter";
-import { roles } from "./data";
+import EditUserDialog from "./components/editUserDialog";
+import { User } from "./utils/type";
 
-const data: User[] = [
+const API_URL = "http://localhost:3001/api/users";
+
+export const roles = [
   {
-    id: "1",
-    name: "111",
-    email: "111@gmail.com",
-    school: [
-      {
-        id: "uni1",
-        name: "school A",
-      },
-      {
-        id: "uni2",
-        name: "school B",
-      },
-    ],
-    role: "teacher",
+    value: "teacher",
+    label: "teacher",
   },
   {
-    id: "2",
-    name: "222",
-    email: "222@gmail.com",
-    school: [
-      {
-        id: "uni2",
-        name: "school B",
-      },
-      {
-        id: "uni3",
-        name: "school C",
-      },
-    ],
-    role: "teacher",
+    value: "student",
+    label: "student",
   },
   {
-    id: "4",
-    name: "333",
-    email: "333@gmail.com",
-    school: [
-      {
-        id: "uni4",
-        name: "school D",
-      },
-    ],
-    role: "student",
+    value: "admin",
+    label: "admin",
   },
 ];
 
-export type School = {
-  id: string;
-  name: string;
-};
-
-export type User = {
-  id: string;
-  name: string;
-  email: string;
-  school: School[];
-  role: "teacher" | "student";
-};
-
-export const columns: ColumnDef<User>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "id",
-    header: () => <div className="text-right">Id</div>,
-    cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="float-right"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ChevronsUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => (
-      <div className="lowercase text-right">{row.getValue("email")}</div>
-    ),
-  },
-  {
-    accessorKey: "name",
-    header: () => <div className="text-right">Name</div>,
-    cell: ({ row }) => (
-      <div className="text-right font-medium">{row.getValue("name")}</div>
-    ),
-  },
-  {
-    accessorKey: "role",
-    header: () => <div className="text-right">Role</div>,
-    cell: ({ row }) => (
-      <div className="text-right font-medium">{row.getValue("role")}</div>
-    ),
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-  },
-  {
-    id: "actions",
-    header: () => <div className="text-right">Actions</div>,
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-
-      return (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <Ellipsis className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-              // onClick={() => navigator.clipboard.writeText(payment.id)}
-              >
-                Reset Password
-              </DropdownMenuItem>
-              <DropdownMenuItem>Update Info</DropdownMenuItem>
-              {/* mainly for schools scope details */}
-              <DropdownMenuItem>View details</DropdownMenuItem>
-              <DropdownMenuItem>Delete</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
-
-export default function UsesrList() {
+export default function UserList() {
+  const [data, setData] = React.useState<User[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -203,6 +64,157 @@ export default function UsesrList() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+
+  React.useEffect(() => {
+    fetch(API_URL)
+      .then((response) => response.json())
+      .then((data) => setData(data));
+  }, []);
+
+  const handleResetPassword = async (userId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password: "123456" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const updatedUser = await response.json();
+      setData((prevData) =>
+        prevData.map((user) => (user.id === userId ? updatedUser : user))
+      );
+      console.log(`Reset password for user ${userId}`);
+    } catch (error) {
+      console.error("Failed to reset password:", error);
+    }
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const response = await fetch(`${API_URL}/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      setData((prevData) => prevData.filter((user) => user.id !== userId));
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+    }
+  };
+
+  const columns: ColumnDef<User>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "id",
+      header: () => <div className="text-right">Id</div>,
+      cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
+    },
+    {
+      accessorKey: "email",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            className="float-right"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Email
+            <ChevronsUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="lowercase text-right">{row.getValue("email")}</div>
+      ),
+    },
+    {
+      accessorKey: "userName",
+      header: () => <div className="text-right">Name</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-medium">{row.getValue("userName")}</div>
+      ),
+    },
+    {
+      accessorKey: "role",
+      header: () => <div className="text-right">Role</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-medium">{row.getValue("role")}</div>
+      ),
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const user = row.original;
+
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <Ellipsis className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleResetPassword(user.id)}>
+                  Reset Password
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                  Update/View Info
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDeleteUser(user.id)}>
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
 
   const table = useReactTable({
     data,
@@ -222,6 +234,30 @@ export default function UsesrList() {
       rowSelection,
     },
   });
+
+  const handleSaveUser = async (user: User) => {
+    try {
+      const response = await fetch(`${API_URL}/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+      });
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const updatedUser = await response.json();
+      setData((prevData) =>
+        prevData.map((u) => (u.id === user.id ? updatedUser : u))
+      );
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to save user:", error);
+    }
+  };
 
   return (
     <>
@@ -343,6 +379,12 @@ export default function UsesrList() {
           </Button>
         </div>
       </div>
+      <EditUserDialog
+        user={selectedUser}
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        onSave={handleSaveUser}
+      />
     </>
   );
 }

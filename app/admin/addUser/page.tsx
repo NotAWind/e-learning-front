@@ -22,6 +22,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RequestPrefix } from "@/app/utils/request";
+import { School } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+
+interface School {
+  id: string;
+  name: string;
+}
 
 const schoolOptionSchema = z.object({
   label: z.string(),
@@ -35,20 +43,14 @@ const formSchema = z.object({
   }),
   email: z.string().email({ message: "Invalid email address" }),
   role: z.string({
-    required_error: "Please select an role to display.",
+    required_error: "Please select a role.",
   }),
   school: z.array(schoolOptionSchema).min(1),
 });
 
-const OPTIONS: Option[] = [
-  { label: "school A", value: "school A" },
-  { label: "school B", value: "school B" },
-  { label: "school C", value: "school C" },
-  { label: "school D", value: "school D" },
-];
-
 export default function AddUser() {
   const [loading, setLoading] = React.useState(false);
+  const [options, setOptions] = React.useState<Option[]>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,14 +61,64 @@ export default function AddUser() {
     },
     mode: "onChange",
   });
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    fetch(`${RequestPrefix}/schools`)
+      .then((response) => response.json())
+      .then((data: School[]) => {
+        const schoolOptions: Option[] = data.map((school: School) => ({
+          label: school.name,
+          value: school.id,
+        }));
+        setOptions(schoolOptions);
+      })
+      .catch((error) => {
+        console.error("Error fetching school options:", error);
+      });
+  }, []);
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     setLoading(true);
 
-    setTimeout(() => {
-      setLoading(false);
-      console.log(JSON.stringify(data, null, 2));
-    }, 500);
+    const defaultAvatar = "https://github.com/shadcn.png";
+    const defaultPassword = "123456";
+    const newFormatData = {
+      email: data.email,
+      role: data.role,
+      password: defaultPassword,
+      userName: data.username,
+      avatar: defaultAvatar,
+      schools: data.school.map((s) => ({
+        schoolId: s.value,
+        schoolName: s.label,
+      })),
+    };
+
+    fetch(`${RequestPrefix}/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newFormatData),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        setLoading(false);
+
+        toast({
+          title: "Successful!",
+          description: `Add User ${data.username} Successfully!`,
+        });
+      })
+      .catch((error) => {
+        setLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: `Failed to add User: ${error}`,
+        });
+      });
   }
 
   return (
@@ -79,9 +131,9 @@ export default function AddUser() {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="please enter user's name" {...field} />
+                <Input placeholder="Please enter user's name" {...field} />
               </FormControl>
-              <FormDescription>This is usesr's name.</FormDescription>
+              <FormDescription>{`This is the user's name.`}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -93,9 +145,9 @@ export default function AddUser() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="please enter user's email" {...field} />
+                <Input placeholder="Please enter user's email" {...field} />
               </FormControl>
-              <FormDescription>This is user's email.</FormDescription>
+              <FormDescription>{`This is the user's email.`}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -134,11 +186,11 @@ export default function AddUser() {
               <FormControl>
                 <MultipleSelector
                   {...field}
-                  defaultOptions={OPTIONS}
+                  options={options}
                   placeholder="Select the schools that the user has permission to view"
                   emptyIndicator={
                     <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                      no results found.
+                      No results found.
                     </p>
                   }
                 />

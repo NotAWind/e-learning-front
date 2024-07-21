@@ -1,12 +1,18 @@
+"use client";
+
 import * as React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useWatch } from "react-hook-form";
+import { z } from "zod";
+import MultipleSelector, { Option } from "@/components/ui/multi-selector";
+import { LoadingButton } from "@/components/ui/loading-button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -16,81 +22,174 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
-import { User } from "../utils/type";
-import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RequestPrefix } from "@/app/utils/request";
+import { useToast } from "@/components/ui/use-toast";
 
-const formSchema = z.object({
-  id: z.string(),
-  userName: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email({ message: "Invalid email address" }),
-  role: z.enum(["teacher", "student", "admin"]),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters" }),
-  schools: z.array(
-    z.object({
-      schoolId: z.string(),
-      schoolName: z.string(),
-    })
-  ),
-});
+interface School {
+  id: string;
+  name: string;
+}
 
-type EditUserDialogProps = {
+interface User {
+  id: string;
+  userName: string;
+  email: string;
+  schools: School[];
+  role: "teacher" | "student" | "admin";
+  password: string;
+  avatar: string;
+}
+
+interface EditUserDialogProps {
   user: User | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (user: User) => void;
-};
+}
 
-export default function EditUserDialog({
+const schoolOptionSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  disable: z.boolean().optional(),
+});
+
+const formSchema = z.object({
+  username: z.string().min(2, {
+    message: "Username must be at least 2 characters.",
+  }),
+  email: z.string().email({ message: "Invalid email address" }),
+  role: z.string({
+    required_error: "Please select a role.",
+  }),
+  school: z.array(schoolOptionSchema).min(1),
+});
+
+const EditUserDialog: React.FC<EditUserDialogProps> = ({
   user,
   isOpen,
   onClose,
   onSave,
-}: EditUserDialogProps) {
+}) => {
+  const [loading, setLoading] = React.useState(false);
+  const [options, setOptions] = React.useState<Option[]>([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: user || {},
+    defaultValues: {
+      username: "",
+      email: "",
+      role: "",
+      school: [],
+    },
     mode: "onChange",
   });
+  const { reset } = form;
+  const { toast } = useToast();
 
   React.useEffect(() => {
     if (user) {
-      form.reset(user);
+      reset({
+        username: user.userName,
+        email: user.email,
+        role: user.role,
+        school: user.schools.map((s) => ({
+          label: s.schoolName,
+          value: s.schoolId,
+        })),
+      });
+      console.log(
+        "school",
+        user.schools.map((s) => ({
+          label: s.schoolName,
+          value: s.schoolId,
+        }))
+      );
     }
-  }, [user, form]);
+  }, [user, reset]);
 
-  const handleSubmit = (data: z.infer<typeof formSchema>) => {
-    onSave(data);
-  };
+  React.useEffect(() => {
+    fetch(`${RequestPrefix}/schools`)
+      .then((response) => response.json())
+      .then((data: School[]) => {
+        const schoolOptions: Option[] = data.map((school: School) => ({
+          label: school.name,
+          value: school.id,
+        }));
+        setOptions(schoolOptions);
+        console.log("schoolOptions", schoolOptions);
+      })
+      .catch((error) => {
+        console.error("Error fetching school options:", error);
+      });
+  }, []);
+
+  function onSubmit(data: z.infer<typeof formSchema>) {
+    setLoading(true);
+
+    const updatedUser = {
+      ...user,
+      email: data.email,
+      role: data.role,
+      userName: data.username,
+      schools: data.school.map((s) => ({
+        schoolId: s.value,
+        schoolName: s.label,
+      })),
+    };
+
+    fetch(`${RequestPrefix}/users/${user?.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedUser),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        setLoading(false);
+
+        toast({
+          title: "Successful!",
+          description: `Updated User ${data.username} Successfully!`,
+        });
+
+        onSave(result);
+        onClose();
+      })
+      .catch((error) => {
+        setLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: `Failed to update User: ${error}`,
+        });
+      });
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
-          <DialogDescription>
-            Edit the user information below.
-          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
-              name="userName"
+              name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter name" {...field} />
+                    <Input placeholder="Please enter user's name" {...field} />
                   </FormControl>
+                  <FormDescription>{`This is the user's name.`}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -102,8 +201,9 @@ export default function EditUserDialog({
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter email" {...field} />
+                    <Input placeholder="Please enter user's email" {...field} />
                   </FormControl>
+                  <FormDescription>{`This is the user's email.`}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -114,53 +214,59 @@ export default function EditUserDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Role</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter role" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select the user's role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="teacher">Teacher</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Different roles have different permissions.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
-              name="password"
+              name="school"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>Schools</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Enter password"
+                    <MultipleSelector
                       {...field}
+                      options={options}
+                      placeholder="Select the schools that the user has permission to view"
+                      emptyIndicator={
+                        <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                          No results found.
+                        </p>
+                      }
                     />
                   </FormControl>
+                  <FormDescription>
+                    Selecting a school means the user has permission to view the
+                    various courses or information published by that school.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="schools"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>School</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter school" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button onClick={onClose} variant="outline">
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
-            </DialogFooter>
+            <LoadingButton loading={loading} type="submit">
+              Submit
+            </LoadingButton>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default EditUserDialog;

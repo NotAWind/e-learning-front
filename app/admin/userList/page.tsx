@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/table";
 import { DataTableFacetedFilter } from "../components/table-faceted-filter";
 import EditUserDialog from "./components/editUserDialog";
-import { User } from "./utils/type";
+import { User, School } from "./utils/type";
 
 const API_URL = "http://localhost:3001/api/users";
 
@@ -236,27 +236,8 @@ export default function UserList() {
   });
 
   const handleSaveUser = async (user: User) => {
-    try {
-      const response = await fetch(`${API_URL}/${user.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user),
-      });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const updatedUser = await response.json();
-      setData((prevData) =>
-        prevData.map((u) => (u.id === user.id ? updatedUser : u))
-      );
-      setIsEditDialogOpen(false);
-    } catch (error) {
-      console.error("Failed to save user:", error);
-    }
+    setData((prevData) => prevData.map((u) => (u.id === user.id ? user : u)));
+    setIsEditDialogOpen(false);
   };
 
   return (

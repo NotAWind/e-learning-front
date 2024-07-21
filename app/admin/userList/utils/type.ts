@@ -1,9 +1,9 @@
-export type School = {
-  schoolId: string;
-  schoolName: string;
-};
+export interface School {
+  id: string;
+  name: string;
+}
 
-export type User = {
+export interface User {
   id: string;
   userName: string;
   email: string;
@@ -11,4 +11,4 @@ export type User = {
   role: "teacher" | "student" | "admin";
   password: string;
   avatar: string;
-};
+}

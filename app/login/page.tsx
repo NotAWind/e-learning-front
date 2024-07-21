@@ -34,7 +34,6 @@ export default function Login() {
       `${RequestPrefix}/users?email=${email}&password=${password}`
     );
 
-    console.log(response);
     const users = await response.json();
 
     if (users.length > 0) {

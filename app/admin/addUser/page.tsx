@@ -197,7 +197,8 @@ export default function AddUser() {
               </FormControl>
               <FormDescription>
                 Selecting a school means the user has permission to view the
-                various courses or information published by that school.
+                various courses or information published by that school.{" "}
+                <b>Not Applicable to Admin.</b>
               </FormDescription>
               <FormMessage />
             </FormItem>

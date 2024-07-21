@@ -14,7 +14,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -37,8 +36,10 @@ import {
 import { DataTableFacetedFilter } from "../components/table-faceted-filter";
 import EditUserDialog from "./components/editUserDialog";
 import { User } from "./utils/type";
+import { RequestPrefix } from "@/app/utils/request";
+import { useToast } from "@/components/ui/use-toast";
 
-const API_URL = "http://localhost:3001/api/users";
+const API_URL = `${RequestPrefix}/users`;
 
 export const roles = [
   {
@@ -66,6 +67,7 @@ export default function UserList() {
   const [rowSelection, setRowSelection] = React.useState({});
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     fetch(API_URL)
@@ -75,12 +77,13 @@ export default function UserList() {
 
   const handleResetPassword = async (userId: string) => {
     try {
+      const defaultPassword = "123456";
       const response = await fetch(`${API_URL}/${userId}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ password: "123456" }),
+        body: JSON.stringify({ password: defaultPassword }),
       });
 
       if (!response.ok) {
@@ -89,11 +92,20 @@ export default function UserList() {
 
       const updatedUser = await response.json();
       setData((prevData) =>
-        prevData.map((user) => (user.id === userId ? updatedUser : user))
+        prevData.map((user) =>
+          user.id === userId ? { ...user, password: defaultPassword } : user
+        )
       );
-      console.log(`Reset password for user ${userId}`);
+      toast({
+        title: "Successfully",
+        description: `"The password for the user with ID ${userId} has been reset."`,
+      });
     } catch (error) {
-      console.error("Failed to reset password:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to reset password: ${error}`,
+      });
     }
   };
 

@@ -89,13 +89,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           value: s.id,
         })),
       });
-      console.log(
-        "school",
-        user.schools.map((s) => ({
-          label: s.name,
-          value: s.id,
-        }))
-      );
     }
   }, [user, reset]);
 
@@ -108,7 +101,6 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           value: school.id,
         }));
         setOptions(schoolOptions);
-        console.log("schoolOptions", schoolOptions);
       })
       .catch((error) => {
         console.error("Error fetching school options:", error);
@@ -239,7 +231,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                   </FormControl>
                   <FormDescription>
                     Selecting a school means the user has permission to view the
-                    various courses or information published by that school.
+                    various courses or information published by that school.{" "}
+                    <b>Not Applicable to Admin.</b>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

@@ -31,21 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { RequestPrefix } from "@/app/utils/request";
 import { useToast } from "@/components/ui/use-toast";
-
-interface School {
-  id: string;
-  name: string;
-}
-
-interface User {
-  id: string;
-  userName: string;
-  email: string;
-  schools: School[];
-  role: "teacher" | "student" | "admin";
-  password: string;
-  avatar: string;
-}
+import { User, School } from "../utils/type";
 
 interface EditUserDialogProps {
   user: User | null;
@@ -99,15 +85,15 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         email: user.email,
         role: user.role,
         school: user.schools.map((s) => ({
-          label: s.schoolName,
-          value: s.schoolId,
+          label: s.name,
+          value: s.id,
         })),
       });
       console.log(
         "school",
         user.schools.map((s) => ({
-          label: s.schoolName,
-          value: s.schoolId,
+          label: s.name,
+          value: s.id,
         }))
       );
     }
@@ -138,8 +124,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
       role: data.role,
       userName: data.username,
       schools: data.school.map((s) => ({
-        schoolId: s.value,
-        schoolName: s.label,
+        id: s.value,
+        name: s.label,
       })),
     };
 
@@ -260,7 +246,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               )}
             />
             <LoadingButton loading={loading} type="submit">
-              Submit
+              Update
             </LoadingButton>
           </form>
         </Form>

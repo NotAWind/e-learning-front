@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/table";
 import { DataTableFacetedFilter } from "../components/table-faceted-filter";
 import EditUserDialog from "./components/editUserDialog";
-import { User, School } from "./utils/type";
+import { User } from "./utils/type";
 
 const API_URL = "http://localhost:3001/api/users";
 

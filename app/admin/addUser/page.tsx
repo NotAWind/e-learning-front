@@ -90,8 +90,8 @@ export default function AddUser() {
       userName: data.username,
       avatar: defaultAvatar,
       schools: data.school.map((s) => ({
-        schoolId: s.value,
-        schoolName: s.label,
+        id: s.value,
+        name: s.label,
       })),
     };
 

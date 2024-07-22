@@ -1,20 +1,5 @@
-"use client";
-
-import * as React from "react";
-import { ChevronDown, Ellipsis } from "lucide-react";
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
+import React, { useEffect, useState } from "react";
+import { useReactTable } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,27 +19,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-const data: Course[] = [
-  {
-    id: "courseId1",
-    name: "courseName11",
-    tags: ["Computer", "Graphics"],
-    type: "Live",
-  },
-  {
-    id: "courseId2",
-    name: "courseName22",
-    tags: ["Business", "Graphics"],
-    type: "Record",
-  },
-  {
-    id: "courseId3",
-    name: "courseName33",
-    tags: ["Math"],
-    type: "Record",
-  },
-];
+import { ChevronDown, Ellipsis } from "lucide-react";
+import { RequestPrefix } from "@/app/utils/request";
 
 export type CourseType = "Live" | "Record";
 
@@ -63,91 +29,123 @@ export type Course = {
   name: string;
   tags: Array<string>;
   type: CourseType;
+  teacher: string;
+  startTime: string;
 };
 
-export const columns: ColumnDef<Course>[] = [
-  {
-    accessorKey: "id",
-    header: () => <div className="text-right">Id</div>,
-    cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
-  },
-  {
-    accessorKey: "name",
-    header: () => <div className="text-right">Name</div>,
-    cell: ({ row }) => (
-      <div className="lowercase text-right">{row.getValue("name")}</div>
-    ),
-  },
-  {
-    accessorKey: "tags",
-    header: () => <div className="text-right">Tags</div>,
-    cell: ({ row }) => (
-      <div className="text-right font-medium">
-        {(row.getValue("tags") as Array<string>)?.map?.((value: string) => (
-          <Badge className="mr-1">{value}</Badge>
-        ))}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "type",
-    header: () => <div className="text-right">Type</div>,
-    cell: ({ row }) => <div className="text-right">{row.getValue("type")}</div>,
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-  },
-  {
-    id: "actions",
-    header: () => <div className="text-right">Actions</div>,
-    enableHiding: false,
-    cell: ({ row }) => {
-      //   const payment = row.original;
+// Function to fetch data
+const fetchData = async () => {
+  const response = await fetch(`${RequestPrefix}/course-list`);
+  const data = await response.json();
+  return data.map((course: any) => ({
+    id: course.id,
+    name: course.courseTitle,
+    tags: course.tags.map((tag: any) => tag.label),
+    type: course.type,
+    teacher: course.teacher,
+    startTime: course.startTime,
+  }));
+};
 
-      return (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <Ellipsis className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-              // onClick={() => navigator.clipboard.writeText(payment.id)}
-              >
-                Delete
-              </DropdownMenuItem>
-              <DropdownMenuItem>Edit/Details</DropdownMenuItem>
-              <DropdownMenuItem>View Comments</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
-
-export default function CourseList() {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+const CourseList = () => {
+  const [data, setData] = useState<Course[]>([]);
+  const [sorting, setSorting] = React.useState([]);
+  const [columnFilters, setColumnFilters] = React.useState([]);
+  const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
+
+  useEffect(() => {
+    const getData = async () => {
+      const courses = await fetchData();
+      setData(courses);
+    };
+    getData();
+  }, []);
 
   const table = useReactTable({
     data,
-    columns,
+    columns: [
+      {
+        accessorKey: "id",
+        header: () => <div className="text-right">Id</div>,
+        cell: ({ row }) => (
+          <div className="text-right">{row.getValue("id")}</div>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: () => <div className="text-right">Name</div>,
+        cell: ({ row }) => (
+          <div className="lowercase text-right">{row.getValue("name")}</div>
+        ),
+      },
+      {
+        accessorKey: "tags",
+        header: () => <div className="text-right">Tags</div>,
+        cell: ({ row }) => (
+          <div className="text-right font-medium">
+            {(row.getValue("tags") as Array<string>)?.map?.((value: string) => (
+              <Badge key={`tag-${value}`} className="mr-1">
+                {value}
+              </Badge>
+            ))}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "type",
+        header: () => <div className="text-right">Type</div>,
+        cell: ({ row }) => (
+          <div className="text-right">{row.getValue("type")}</div>
+        ),
+        filterFn: (row, id, value) => {
+          return value.includes(row.getValue(id));
+        },
+      },
+      {
+        id: "actions",
+        header: () => <div className="text-right">Actions</div>,
+        enableHiding: false,
+        cell: ({ row }) => {
+          const courseId = row.original.id;
+          return (
+            <div className="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <Ellipsis className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => handleDelete(courseId)}>
+                    Delete
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      window.open(
+                        `/admin/courseDetails?id=${courseId}`,
+                        "_blank"
+                      )
+                    }
+                  >
+                    Edit/Details
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>View Comments</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        },
+      },
+    ],
+    getCoreRowModel: () => {},
+    getPaginationRowModel: () => {},
+    getSortedRowModel: () => {},
+    getFilteredRowModel: () => {},
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
@@ -157,6 +155,13 @@ export default function CourseList() {
       rowSelection,
     },
   });
+
+  // Implement delete action
+  const handleDelete = (id: string) => {
+    const updatedData = data.filter((course) => course.id !== id);
+    setData(updatedData);
+    // Add your delete API call here if necessary
+  };
 
   return (
     <>
@@ -237,7 +242,7 @@ export default function CourseList() {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length}
+                  colSpan={table.getAllColumns().length}
                   className="h-24 text-center"
                 >
                   No results.
@@ -269,4 +274,6 @@ export default function CourseList() {
       </div>
     </>
   );
-}
+};
+
+export default CourseList;

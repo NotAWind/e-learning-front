@@ -68,9 +68,11 @@ export default function CourseList() {
     fetchCourses().then(setData);
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    await fetch(`${RequestPrefix}/course-list/${id}`, {
+      method: "DELETE",
+    });
     setData(data.filter((course) => course.id !== id));
-    // Make API call to delete course here
   };
 
   const handleEdit = (id: string) => {

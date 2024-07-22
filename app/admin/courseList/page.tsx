@@ -1,5 +1,18 @@
+"use client";
 import React, { useEffect, useState } from "react";
-import { useReactTable } from "@tanstack/react-table";
+import { ChevronDown, Ellipsis } from "lucide-react";
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,8 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Ellipsis } from "lucide-react";
-import { RequestPrefix } from "@/app/utils/request";
+import { RequestPrefix, domain } from "@/app/utils/request";
 
 export type CourseType = "Live" | "Record";
 
@@ -29,123 +41,119 @@ export type Course = {
   name: string;
   tags: Array<string>;
   type: CourseType;
-  teacher: string;
-  startTime: string;
 };
 
-// Function to fetch data
-const fetchData = async () => {
+const fetchCourses = async () => {
   const response = await fetch(`${RequestPrefix}/course-list`);
   const data = await response.json();
   return data.map((course: any) => ({
-    id: course.id,
+    id: course.id.toString(),
     name: course.courseTitle,
     tags: course.tags.map((tag: any) => tag.label),
     type: course.type,
-    teacher: course.teacher,
-    startTime: course.startTime,
   }));
 };
 
-const CourseList = () => {
+export default function CourseList() {
   const [data, setData] = useState<Course[]>([]);
-  const [sorting, setSorting] = React.useState([]);
-  const [columnFilters, setColumnFilters] = React.useState([]);
-  const [columnVisibility, setColumnVisibility] = React.useState({});
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   useEffect(() => {
-    const getData = async () => {
-      const courses = await fetchData();
-      setData(courses);
-    };
-    getData();
+    fetchCourses().then(setData);
   }, []);
+
+  const handleDelete = (id: string) => {
+    setData(data.filter((course) => course.id !== id));
+    // Make API call to delete course here
+  };
+
+  const handleEdit = (id: string) => {
+    window.open(`${domain}/admin/courseDetail?id=${id}`, "_blank");
+  };
+
+  const columns: ColumnDef<Course>[] = [
+    {
+      accessorKey: "id",
+      header: () => <div className="text-right">Id</div>,
+      cell: ({ row }) => <div className="text-right">{row.getValue("id")}</div>,
+    },
+    {
+      accessorKey: "name",
+      header: () => <div className="text-right">Name</div>,
+      cell: ({ row }) => (
+        <div className="lowercase text-right">{row.getValue("name")}</div>
+      ),
+    },
+    {
+      accessorKey: "tags",
+      header: () => <div className="text-right">Tags</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-medium">
+          {(row.getValue("tags") as Array<string>)?.map?.((value: string) => (
+            <Badge key={`tag-${value}`} className="mr-1">
+              {value}
+            </Badge>
+          ))}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "type",
+      header: () => <div className="text-right">Type</div>,
+      cell: ({ row }) => (
+        <div className="text-right">{row.getValue("type")}</div>
+      ),
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Actions</div>,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const courseId = row.getValue("id") as string;
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <Ellipsis className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => handleDelete(courseId)}>
+                  Delete
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleEdit(courseId)}>
+                  Edit/Details
+                </DropdownMenuItem>
+                <DropdownMenuItem>View Comments</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+    },
+  ];
 
   const table = useReactTable({
     data,
-    columns: [
-      {
-        accessorKey: "id",
-        header: () => <div className="text-right">Id</div>,
-        cell: ({ row }) => (
-          <div className="text-right">{row.getValue("id")}</div>
-        ),
-      },
-      {
-        accessorKey: "name",
-        header: () => <div className="text-right">Name</div>,
-        cell: ({ row }) => (
-          <div className="lowercase text-right">{row.getValue("name")}</div>
-        ),
-      },
-      {
-        accessorKey: "tags",
-        header: () => <div className="text-right">Tags</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium">
-            {(row.getValue("tags") as Array<string>)?.map?.((value: string) => (
-              <Badge key={`tag-${value}`} className="mr-1">
-                {value}
-              </Badge>
-            ))}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "type",
-        header: () => <div className="text-right">Type</div>,
-        cell: ({ row }) => (
-          <div className="text-right">{row.getValue("type")}</div>
-        ),
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-      },
-      {
-        id: "actions",
-        header: () => <div className="text-right">Actions</div>,
-        enableHiding: false,
-        cell: ({ row }) => {
-          const courseId = row.original.id;
-          return (
-            <div className="text-right">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <Ellipsis className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => handleDelete(courseId)}>
-                    Delete
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      window.open(
-                        `/admin/courseDetails?id=${courseId}`,
-                        "_blank"
-                      )
-                    }
-                  >
-                    Edit/Details
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>View Comments</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          );
-        },
-      },
-    ],
-    getCoreRowModel: () => {},
-    getPaginationRowModel: () => {},
-    getSortedRowModel: () => {},
-    getFilteredRowModel: () => {},
+    columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
@@ -155,13 +163,6 @@ const CourseList = () => {
       rowSelection,
     },
   });
-
-  // Implement delete action
-  const handleDelete = (id: string) => {
-    const updatedData = data.filter((course) => course.id !== id);
-    setData(updatedData);
-    // Add your delete API call here if necessary
-  };
 
   return (
     <>
@@ -242,7 +243,7 @@ const CourseList = () => {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={table.getAllColumns().length}
+                  colSpan={columns.length}
                   className="h-24 text-center"
                 >
                   No results.
@@ -274,6 +275,4 @@ const CourseList = () => {
       </div>
     </>
   );
-};
-
-export default CourseList;
+}

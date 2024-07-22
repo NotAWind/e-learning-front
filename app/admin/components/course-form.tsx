@@ -84,9 +84,15 @@ const courseFormSchema = z.object({
     .max(1000, {
       message: "Introduction must not be longer than 1000 characters.",
     }),
-  cover: z.instanceof(File).refine((file) => file.size > 0, {
-    message: "File size must be greater than 0",
-  }),
+  cover: z
+    .union([
+      z.instanceof(File).refine((file) => file.size >= 0, {
+        message: "File size must be greater than 0",
+      }),
+      z.undefined(),
+      z.null(),
+    ])
+    .optional(),
   teacher: z.string().min(1, {
     message: "Please fill in at least one teacher!",
   }),

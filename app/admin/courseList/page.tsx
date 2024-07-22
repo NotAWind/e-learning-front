@@ -79,6 +79,10 @@ export default function CourseList() {
     window.open(`${domain}/admin/courseDetail?id=${id}`, "_blank");
   };
 
+  const handleViewComments = (id: string) => {
+    window.open(`${domain}/admin/courseComments?courseId=${id}`, "_blank");
+  };
+
   const columns: ColumnDef<Course>[] = [
     {
       accessorKey: "id",
@@ -138,7 +142,9 @@ export default function CourseList() {
                 <DropdownMenuItem onClick={() => handleEdit(courseId)}>
                   Edit/Details
                 </DropdownMenuItem>
-                <DropdownMenuItem>View Comments</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleViewComments(courseId)}>
+                  View Comments
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

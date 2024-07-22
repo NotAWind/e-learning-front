@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import MultipleSelector, { Option } from "@/components/ui/multi-selector";
@@ -49,6 +50,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { RequestPrefix } from "@/app/utils/request";
 
 const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
@@ -68,37 +70,18 @@ const schoolOptionSchema = z.object({
   value: z.string(),
 });
 
-const TAGSOPTIONS: Option[] = [
-  { label: "Math", value: "Math" },
-  { label: "Language", value: "Language" },
-  { label: "Computer", value: "Computer" },
-  { label: "Bussiness", value: "Bussiness" },
-  { label: "Chemistry", value: "Chemistry" },
-  { label: "Physics", value: "Physics" },
-];
+const weeklyCourseSchema = z.object({
+  theme: z.string().min(1, "Theme is required"),
+  liveStreamLink: z.string().url().optional(),
+  recordVideo: z.instanceof(File).optional(),
+  summary: z.string().optional(),
+  keyWords: z.string().optional(),
+  materials: z.instanceof(File).optional(),
+});
 
-const SCHOOLOPTIONS: Option[] = [
-  {
-    label: "School A",
-    value: "School A",
-  },
-  {
-    label: "School B",
-    value: "School B",
-  },
-  {
-    label: "School C",
-    value: "School C",
-  },
-  {
-    label: "School D",
-    value: "School D",
-  },
-];
-
-const profileFormSchema = z.object({
+const courseFormSchema = z.object({
   courseTitle: z.string().min(1, {
-    message: "Course name can not be empty.",
+    message: "Course name cannot be empty.",
   }),
   introduction: z
     .string()
@@ -106,52 +89,36 @@ const profileFormSchema = z.object({
       message: "Introduction must be at least 10 characters.",
     })
     .max(1000, {
-      message: "Introduction must not be longer than 30 characters.",
+      message: "Introduction must not be longer than 1000 characters.",
     }),
-  cover: z.object({
-    images: z
-      .any()
-      .refine(
-        (files) => {
-          return Array.from(files).every((file) => file instanceof File);
-        },
-        { message: "Expected a file" }
-      )
-      .refine(
-        (files) =>
-          Array.from(files).every((file) =>
-            ACCEPTED_IMAGE_TYPES.includes(file?.type)
-          ),
-        "Only these types are allowed .jpg, .jpeg, .png and .webp"
-      ),
+  cover: z.instanceof(File).refine((file) => file.size > 0, {
+    message: "File size must be greater than 0",
   }),
   teacher: z.string().min(1, {
-    message: "please fill in at least one teacher!",
+    message: "Please fill in at least one teacher!",
   }),
   startTime: z.date({
-    required_error: "A date of birth is required.",
+    required_error: "A start time is required.",
   }),
   type: z.string({
     required_error: "Please select the course's type to display.",
   }),
   tags: z.array(tagsOptionSchema).min(1),
-  weeklyCourses: z
-    .array(
-      z.object({
-        value: z.string().optional(),
-      })
-    )
-    .optional(),
+  weeklyCourses: z.array(weeklyCourseSchema).optional(),
   schools: z.array(schoolOptionSchema).min(1),
 });
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+type CourseFormValues = z.infer<typeof courseFormSchema>;
 
-const defaultValues: Partial<ProfileFormValues> = {};
+const defaultValues: Partial<CourseFormValues> = {};
 
 export default function AddCourse() {
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+  const [schoolOptions, setSchoolOptions] = useState<Option[]>([]);
+  const [tagOptions, setTagOptions] = useState<Option[]>([]);
+  const [courses, setCourses] = useState<CourseFormValues[]>([]);
+
+  const form = useForm<CourseFormValues>({
+    resolver: zodResolver(courseFormSchema),
     defaultValues,
     mode: "onChange",
   });
@@ -161,7 +128,30 @@ export default function AddCourse() {
     control: form.control,
   });
 
-  function onSubmit(data: ProfileFormValues) {
+  useEffect(() => {
+    fetch(`${RequestPrefix}/schools`)
+      .then((response) => response.json())
+      .then((data) => {
+        const schoolOptionsFromAPI = data.map((school: any) => ({
+          label: school.name,
+          value: school.name,
+        }));
+        setSchoolOptions(schoolOptionsFromAPI);
+      });
+
+    fetch(`${RequestPrefix}/tags`)
+      .then((response) => response.json())
+      .then((data) => {
+        const tagOptionsFromAPI = data.map((tag: any) => ({
+          label: tag.label,
+          value: tag.value,
+        }));
+        setTagOptions(tagOptionsFromAPI);
+      });
+  }, []);
+
+  function onSubmit(data: CourseFormValues) {
+    setCourses([...courses, data]);
     console.log(JSON.stringify(data, null, 2));
   }
 
@@ -208,9 +198,13 @@ export default function AddCourse() {
             <FormItem>
               <FormLabel>Cover</FormLabel>
               <FormControl>
-                <Input type="file" multiple {...field} />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => field.onChange(e?.target?.files?.[0])}
+                />
               </FormControl>
-              <FormDescription>upload course'cover</FormDescription>
+              <FormDescription>Upload course cover</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -284,7 +278,7 @@ export default function AddCourse() {
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select the course' stype" />
+                    <SelectValue placeholder="Select the course's type" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -305,11 +299,11 @@ export default function AddCourse() {
               <FormControl>
                 <MultipleSelector
                   {...field}
-                  defaultOptions={TAGSOPTIONS}
+                  options={tagOptions}
                   placeholder="Select the category of the course"
                   emptyIndicator={
                     <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                      no results found.
+                      No results found.
                     </p>
                   }
                 />
@@ -330,11 +324,11 @@ export default function AddCourse() {
               <FormControl>
                 <MultipleSelector
                   {...field}
-                  defaultOptions={SCHOOLOPTIONS}
+                  options={schoolOptions}
                   placeholder="Select the school"
                   emptyIndicator={
                     <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
-                      no results found.
+                      No results found.
                     </p>
                   }
                 />
@@ -350,7 +344,7 @@ export default function AddCourse() {
           <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight mr-4">
             Weekly Course
           </h3>
-          <Button type="button" onClick={() => append({ value: "" })}>
+          <Button type="button" onClick={() => append({ theme: "" })}>
             Add Week
           </Button>
         </div>
@@ -371,8 +365,8 @@ export default function AddCourse() {
                     <SheetHeader>
                       <SheetTitle>Edit Weekly Course</SheetTitle>
                       <SheetDescription>
-                        Make changes to the weekly course here. Click save when
-                        you're done.
+                        {`Make changes to the weekly course here. Click save when
+                        you're done.`}
                       </SheetDescription>
                     </SheetHeader>
                     <div className="grid gap-4 py-4">
@@ -386,13 +380,19 @@ export default function AddCourse() {
                               </TooltipTrigger>
                               <TooltipContent className="w-72">
                                 <p className="text-sm text-muted-foreground text-left">
-                                  This week's course topic/title
+                                  {`This week's course topic/title`}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </Label>
-                        <Input className="col-span-3" />
+                        <FormField
+                          control={form.control}
+                          name={`weeklyCourses.${index}.theme`}
+                          render={({ field }) => (
+                            <Input {...field} className="col-span-3" />
+                          )}
+                        />
                       </div>
 
                       <div className="grid grid-cols-4 items-center gap-4">
@@ -408,14 +408,20 @@ export default function AddCourse() {
                               </TooltipTrigger>
                               <TooltipContent className="w-72">
                                 <p className="text-sm text-muted-foreground text-left">
-                                  If this week's course type is a live stream,
-                                  fill in the live stream link here
+                                  {`If this week's course type is a live stream,
+                                  fill in the live stream link here`}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </Label>
-                        <Input className="col-span-3" />
+                        <FormField
+                          control={form.control}
+                          name={`weeklyCourses.${index}.liveStreamLink`}
+                          render={({ field }) => (
+                            <Input {...field} className="col-span-3" />
+                          )}
+                        />
                       </div>
 
                       <div className="grid grid-cols-4 items-center gap-4">
@@ -428,14 +434,26 @@ export default function AddCourse() {
                               </TooltipTrigger>
                               <TooltipContent className="w-72">
                                 <p className="text-sm text-muted-foreground text-left">
-                                  If this week's course type is a recorded
-                                  video, upload the recorded video here
+                                  {`If this week's course type is a recorded
+                                  video, upload the recorded video here`}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </Label>
-                        <Input type="file" className="col-span-3" />
+                        <FormField
+                          control={form.control}
+                          name={`weeklyCourses.${index}.recordVideo`}
+                          render={({ field }) => (
+                            <Input
+                              type="file"
+                              className="col-span-3"
+                              onChange={(e) =>
+                                field.onChange(e?.target?.files?.[0])
+                              }
+                            />
+                          )}
+                        />
                       </div>
 
                       <div className="grid grid-cols-4 items-center gap-4">
@@ -448,13 +466,19 @@ export default function AddCourse() {
                               </TooltipTrigger>
                               <TooltipContent className="w-72">
                                 <p className="text-sm text-muted-foreground text-left">
-                                  Briefly summarize this week's course
+                                  {`Briefly summarize this week's course`}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </Label>
-                        <Textarea className="col-span-3" />
+                        <FormField
+                          control={form.control}
+                          name={`weeklyCourses.${index}.summary`}
+                          render={({ field }) => (
+                            <Textarea {...field} className="col-span-3" />
+                          )}
+                        />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="key Words" className="text-right">
@@ -466,15 +490,21 @@ export default function AddCourse() {
                               </TooltipTrigger>
                               <TooltipContent className="w-72">
                                 <p className="text-sm text-muted-foreground text-left">
-                                  Enter the keywords for this week's course,
+                                  {` Enter the keywords for this week's course,
                                   separated by commas if there are multiple
-                                  keywords
+                                  keywords`}
                                 </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </Label>
-                        <Textarea className="col-span-3" />
+                        <FormField
+                          control={form.control}
+                          name={`weeklyCourses.${index}.keyWords`}
+                          render={({ field }) => (
+                            <Textarea {...field} className="col-span-3" />
+                          )}
+                        />
                       </div>
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="materials" className="text-right">
@@ -493,7 +523,19 @@ export default function AddCourse() {
                             </Tooltip>
                           </TooltipProvider>
                         </Label>
-                        <Input type="file" className="col-span-3" />
+                        <FormField
+                          control={form.control}
+                          name={`weeklyCourses.${index}.materials`}
+                          render={({ field }) => (
+                            <Input
+                              type="file"
+                              className="col-span-3"
+                              onChange={(e) =>
+                                field.onChange(e?.target?.files?.[0])
+                              }
+                            />
+                          )}
+                        />
                       </div>
                     </div>
                     <SheetFooter>
@@ -517,7 +559,7 @@ export default function AddCourse() {
           ))}
         </ol>
 
-        <Button type="submit">Update profile</Button>
+        <Button type="submit">Add Course</Button>
       </form>
     </Form>
   );

@@ -41,11 +41,15 @@ export default function Login() {
       if (role === "student" && user.role === role) {
         router.push("/main/home");
       } else if (role === "admin" && user.role === "teacher") {
-        alert(`Welcome teacher`);
+        router.push("/admin/courseList");
       } else if (role === "admin" && user.role === "admin") {
-        alert(`Welcome admin`);
+        router.push("/admin/userList");
       } else {
-        alert("Incorrect role");
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: `Incorrect role`,
+        });
       }
       setSession(user); // Set user information in the session
     } else {

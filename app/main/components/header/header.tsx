@@ -60,8 +60,8 @@ export default function Header() {
   };
 
   const handleLogOut = () => {
-    setSession(null);
     router.push("/login");
+    setSession(null);
   };
 
   return (

@@ -12,16 +12,17 @@ export default function MainLayout({
   children: React.ReactNode;
 }) {
   const { session } = useSession();
+  const role = session?.role;
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) {
+    if (!session || role !== "student") {
       router.push("/login");
     } else {
       setLoading(false);
     }
-  }, [session, router]);
+  }, [session, router, role]);
 
   if (loading) {
     return <Spinner size="large" />;
